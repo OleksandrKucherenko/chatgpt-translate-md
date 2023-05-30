@@ -18,6 +18,25 @@ export interface Question extends Omit<prompts.PromptObject, `type` | `name`> {
   type?: prompts.PromptType
 }
 
+/**
+ * Sample usage:
+ * <pre>
+ *   // declare enum with possible choices
+ *   enum BucketChoices {
+ *     auto = `auto`,
+ *     one = `1`,
+ *     two = `2`,
+ *     four = `4`,
+ *     eight = `8`,
+ *     max = `16`,
+ *   }
+ *
+ *  const Prompts: Questions = {
+ *    // use enum to generate choices
+ *    buckets: Choices.from({ message: `Number of buckets to use`, }, BucketChoices),
+ *  }
+ * </pre>
+ * */
 export class Choices implements Question {
   // @ts-expect-error message property assigned via Object.assign(this, props)
   message: string
@@ -38,6 +57,15 @@ export class Choices implements Question {
   }
 }
 
+/**
+ * Sample usage:
+ * <pre>
+ *   const Prompts: Questions = {
+ *    // parameters is a secret and should be masked/hidden
+ *    token: Secret.from({ message: `OpenAI ChatGPT API Access Token`, }),
+ *    }
+ * </pre>
+ * */
 export class Secret implements Question {
   // @ts-expect-error message property assigned via Object.assign(this, props)
   message: ``
