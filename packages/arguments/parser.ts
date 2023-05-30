@@ -7,7 +7,7 @@ import { dumpD, log, logW, Exits } from '@this/configuration'
 
 import { Defaults, Options, Prompts, Yargs } from './params'
 import { type Command, type Extras, type Predefined, type Question, type Switch } from './types'
-import { type AllFlags, GlobalFlags, Routes } from './routes'
+import { type AllFlags, ApplicationName, GlobalFlags, Routes } from './routes'
 import { type Context, type TypedArguments } from './context'
 
 const resolveDefaults = (defaults: Predefined): TypedArguments => {
@@ -103,7 +103,7 @@ const reportDefaultResolutions = (_context: Context, questions: prompts.PromptOb
 
 export const parseArguments = async (args: string[], defaults = Defaults): Promise<Context> => {
   let parser = yargs()
-    .scriptName(`cli-gpt`)
+    .scriptName(ApplicationName)
     .usage(`Usage: $0 <command> [options]`)
     .showHelpOnFail(true)
     .wrap(Math.min(120, yargs([]).terminalWidth()))

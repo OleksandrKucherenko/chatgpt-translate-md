@@ -1,3 +1,6 @@
+/** Name of our tool. */
+export const ApplicationName = `cli-gpt`
+
 /** enum of supported command line commands. Each command should correspond specific flags enum.
  * translate ~> TranslateFlags
  * */
