@@ -1,0 +1,26 @@
+# do not allow commit of secrets
+.secrets/
+
+# Yarn 3 files
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# node_modules and build files
+node_modules/
+dist/
+coverage/
+build/
+.cache/
+reports/
+
+# backup files
+*.bak
+*.orig
+*.old
+*.log
+*.tmp

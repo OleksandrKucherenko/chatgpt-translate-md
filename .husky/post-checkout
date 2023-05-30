@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# shellcheck disable=SC1091
+. "$(dirname "$0")/_/husky.sh"
+
+ERROR_MSG="\nThis repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting '.git/hooks/post-checkout'.\n"
+command -v git-lfs >/dev/null 2>&1 || {
+    echo "$ERROR_MSG" >&2
+    exit 2
+}
+git lfs post-checkout "$@"
