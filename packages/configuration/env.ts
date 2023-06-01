@@ -1,15 +1,27 @@
 import { config } from 'dotenv'
 import { expand } from 'dotenv-expand'
 import { existsSync } from 'node:fs'
+import { logD } from './logs'
+import findConfig from 'find-config'
+import path from 'node:path'
 
 const NODE_ENV = process.env.NODE_ENV ?? `development`
+const CWD = process.cwd()
+const ROOT = (findConfig(`.env`, { cwd: CWD }) ?? '').replace(/\.env$/, '')
+
+logD(`node environment: %o`, NODE_ENV)
+logD(`exec directory: %o`, CWD)
 
 export const environmentFiles = (): string[] => {
-  const files = [`.env.${NODE_ENV}.local`, NODE_ENV !== `test` && `.env.local`, `.env.${NODE_ENV}`, `.env`].filter(
-    Boolean
-  )
+  const files = [
+    `.env.${NODE_ENV}.local`,
+    /* do not load local for TEST executions. */
+    NODE_ENV !== `test` && `.env.local`,
+    `.env.${NODE_ENV}`,
+    `.env`,
+  ].filter(Boolean)
 
-  return (files as string[]).filter((path) => existsSync(path))
+  return (files as string[]).map((file) => path.resolve(ROOT ?? CWD, file)).filter((path) => existsSync(path))
 }
 
 environmentFiles().forEach((path) => {

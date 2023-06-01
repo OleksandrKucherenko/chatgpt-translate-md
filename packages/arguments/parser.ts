@@ -2,23 +2,37 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import chalk from 'chalk'
 import prompts from 'prompts'
+import MaskData from 'maskdata'
 
 import { dumpD, log, logW, Exits } from '@this/configuration'
 
 import { Defaults, Options, Prompts, Yargs } from './params'
 import { type Command, type Extras, type Predefined, type Question, type Switch } from './types'
-import { type AllFlags, ApplicationName, GlobalFlags, Routes } from './routes'
+import { type AllFlags, ApplicationName, ApplicationVersion, GlobalFlags, Routes } from './routes'
 import { type Context, type TypedArguments } from './context'
+
+const mask = <T extends object>(data: T) => {
+  const options = {
+    passwordFields: [`token`, `t`, `flags.token`, `flags.t`, `token[0]`],
+    passwordMaskOptions: { maskWith: `*`, unmaskedStartCharacters: 3, unmaskedEndCharacters: 4 },
+  }
+  return MaskData.maskJSON2(data, options)
+}
 
 const resolveDefaults = (defaults: Predefined): TypedArguments => {
   const entries = Object.entries(defaults).map(([name, values]) => {
-    const value = values.find(Boolean)
+    const value = values.find((a) => a != null && typeof a !== `undefined`)
 
     return [name, value]
   })
 
   return Object.fromEntries(entries) as TypedArguments
 }
+
+const removeUndefined = <T extends object>(data: T): T =>
+  Object.entries(data)
+    .filter(([, value]) => value !== undefined)
+    .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {}) as T
 
 const resolveOption = (name: AllFlags, option: Switch, defaults: Predefined, extras: Extras): Switch => {
   const resolved = resolveDefaults(defaults)
@@ -35,7 +49,7 @@ const resolveOption = (name: AllFlags, option: Switch, defaults: Predefined, ext
 }
 
 const configureCommands = (parser: yargs.Argv, defaults = Defaults, commands = Yargs): yargs.Argv => {
-  dumpD(`defaults %o and commands %o`, defaults, commands)
+  dumpD(`defaults %O and commands %O`, mask(defaults), commands)
 
   let mutableParser = parser
 
@@ -66,7 +80,7 @@ const configureCommands = (parser: yargs.Argv, defaults = Defaults, commands = Y
 }
 
 const configureGlobalOptions = (parser: yargs.Argv, defaults = Defaults, options = Options): yargs.Argv => {
-  dumpD(`defaults %o and options %o`, defaults, options)
+  dumpD(`defaults %O and options %O`, mask(defaults), options)
 
   let mutableParser = parser
 
@@ -104,6 +118,7 @@ const reportDefaultResolutions = (_context: Context, questions: prompts.PromptOb
 export const parseArguments = async (args: string[], defaults = Defaults): Promise<Context> => {
   let parser = yargs()
     .scriptName(ApplicationName)
+    .version(ApplicationVersion)
     .usage(`Usage: $0 <command> [options]`)
     .showHelpOnFail(true)
     .wrap(Math.min(120, yargs([]).terminalWidth()))
@@ -114,14 +129,14 @@ export const parseArguments = async (args: string[], defaults = Defaults): Promi
   parser = configureCommands(parser, defaults)
   parser = configureGlobalOptions(parser, defaults)
 
-  const argv = (await parser.parseAsync(hideBin(args))) as unknown as TypedArguments
-  const flags: TypedArguments = { ...resolveDefaults(defaults), ...argv }
+  const argv: TypedArguments = (await parser.parseAsync(hideBin(args))) as unknown as TypedArguments
+  const flags: TypedArguments = { ...resolveDefaults(defaults), ...removeUndefined(argv) }
 
   return { flags }
 }
 
 export const confirmArguments = async (context: Context, commands = Yargs, questions = Prompts): Promise<Context> => {
-  dumpD(`context %o and prompts %o`, context, questions)
+  dumpD(`context %O and prompts %O`, mask(context), questions)
 
   const {
     flags: { ask: interactive, command: execCommand },
@@ -131,6 +146,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
 
   const command = commands[execCommand]
   const toConfirm = (command.questions ?? []).map((name) => {
+    if (!questions[name]) throw new Error(`Prompts are not defined for option: ${name}`)
     const { type, ...rest } = questions[name] as Question
 
     const obj: prompts.PromptObject = {
@@ -142,7 +158,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
 
     return obj
   })
-  dumpD(`to confirm %o`, toConfirm)
+  dumpD(`to confirm %O`, toConfirm)
 
   if (!interactive) {
     reportDefaultResolutions(context, toConfirm)

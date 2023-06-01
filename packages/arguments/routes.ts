@@ -1,6 +1,8 @@
 /** Name of our tool. */
 export const ApplicationName = `cli-gpt`
 
+export const ApplicationVersion = `0.0.1`
+
 /** enum of supported command line commands. Each command should correspond specific flags enum.
  * translate ~> TranslateFlags
  * */
@@ -10,9 +12,12 @@ export enum Routes {
 
 /** Global flags that available for all commands. */
 export enum GlobalFlags {
+  /** OpenAI api token. */
   token = `token`,
   /** --ask and --no-ask - interactive and non-interactive */
   ask = `ask`,
+  /** enable debug mode of the tool, the same can be achieved by `DEBUG=*` */
+  debug = `debug`,
 }
 
 /** Translate specific flags. */

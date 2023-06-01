@@ -24,3 +24,7 @@ reports/
 *.old
 *.log
 *.tmp
+
+# environment files
+.env.*.local
+.env.local

@@ -1,4 +1,4 @@
-import { emitter, Events } from './gc'
+import { emitter, Events } from '@this/gc'
 import { processArguments, type Context } from '@this/arguments'
 import { dumpD, Exits } from '@this/configuration'
 
