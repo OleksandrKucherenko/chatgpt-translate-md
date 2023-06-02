@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/node18/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "composite": true,
+    "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./build",
+    "importHelpers": true,
+    "allowSyntheticDefaultImports": true,
+    "lib": ["ES2022", "dom"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "ES2022",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "types": ["node", "jest"],
+    "paths": {
+      "*": ["node_modules/*", "packages/*", "services/*", "websites/*", "clis/*"]
+    },
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
+  "include": ["clis/**/*", "packages/**/*", "services/**/*", "websites/**/*"],
+  "exclude": ["node_modules", "dist", "build"],
+  "references": [
+    { "path": "clis/gpt" },
+    { "path": "packages/arguments" },
+    { "path": "packages/gc" },
+    { "path": "packages/configuration" }
+  ]
+}
