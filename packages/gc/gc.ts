@@ -46,7 +46,11 @@ emitter.on(Events.exit, gracefulShutdown)
 
 /** on ERROR signal, report error into stdout. */
 emitter.on(Events.error, (error) => {
-  log(`${Exits.unhandled.name} %O`, error)
+  if (error instanceof Error && error.cause === Exits.abort.code) {
+    log(`%O`, error.message)
+  } else {
+    log(`${Exits.unhandled.name} %O`, error)
+  }
 })
 
 const SIGTERM: NodeJS.Signals = `SIGTERM`
@@ -80,3 +84,17 @@ export const safe =
       emitter.emit(Events.error, error)
     }
   }
+
+export type AtomicCounter = { counter: Int32Array }
+
+export const composeAtomicCounter = (): AtomicCounter => {
+  return { counter: new Int32Array(new SharedArrayBuffer(4)) }
+}
+
+export const increment = <T>(c: AtomicCounter, fn2: Promise<T>) =>
+  new Promise((resolve, reject) => {
+    fn2
+      .then((value) => resolve(value))
+      .catch((error) => reject(error))
+      .finally(() => Atomics.add(c.counter, 0, 1))
+  })

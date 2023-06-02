@@ -17,6 +17,7 @@ coverage/
 build/
 .cache/
 reports/
+output/
 
 # backup files
 *.bak

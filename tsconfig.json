@@ -29,7 +29,10 @@
     "skipLibCheck": true,
     "module": "ES2022",
     "moduleResolution": "node",
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "paths": {
+      "*": ["node_modules/*", "packages/*", "services/*", "websites/*", "clis/*"]
+    },
   },
   "ts-node": {
     "esm": true,

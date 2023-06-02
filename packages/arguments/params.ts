@@ -1,5 +1,5 @@
-import { type Commands, type Predefined, type Questions, Secured, type Switches } from './types'
-import { TranslateFlags } from './routes'
+import { type Commands, type Predefined, type Questions, Secured, SuggestDirs, type Switches } from './types'
+import { GlobalFlags, TranslateFlags } from './routes'
 
 /** Values of the parameters extracted from global environment. */
 export const Defaults: Predefined = {
@@ -10,6 +10,7 @@ export const Defaults: Predefined = {
   language: [`Ukrainian`, `<language>`],
   overwrite: [false],
   debug: [false],
+  cwd: [process.cwd()],
 }
 
 /** User friendly questions. */
@@ -29,6 +30,9 @@ export const Prompts: Questions = {
   token: {
     message: `OpenAI ChatGPT API Access Token (sk-xxxx):`,
   },
+  cwd: SuggestDirs.from({
+    message: `Current working directory (ex. ~/project, ../project, ./project):`,
+  }),
 }
 
 /** Configuration of all available flags/switches. */
@@ -64,6 +68,9 @@ export const Options: Switches = {
     type: `boolean`,
     defaultDescription: `false`,
   },
+  cwd: {
+    describe: `Current working directory for file search operations. Defaults to process.cwd().`,
+  },
 }
 
 /** Yargs commands configuration. */
@@ -72,6 +79,6 @@ export const Yargs: Commands = {
     aliases: [`$0`],
     description: `Translate file(s) from one language to another over ChatGPT`,
     options: [TranslateFlags.source, TranslateFlags.overwrite, TranslateFlags.language],
-    questions: [TranslateFlags.source, TranslateFlags.overwrite, TranslateFlags.language],
+    questions: [GlobalFlags.cwd, TranslateFlags.source, TranslateFlags.overwrite, TranslateFlags.language],
   },
 }

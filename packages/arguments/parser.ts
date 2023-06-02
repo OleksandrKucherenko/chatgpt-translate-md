@@ -166,11 +166,12 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
   }
 
   // TODO (olku): aliases values are not updated properly
-  log(`Press 'Ctrl+C' to abort`)
+  log(`Press 'Ctrl+C' to abort; Press 'Tab' to autocomplete; Press 'Enter' to confirm;`)
   const mutated = await prompts(toConfirm, {
     onCancel: () => {
-      throw new Error(`${Exits.abort.name}`)
+      throw new Error(`${Exits.abort.name}`, { cause: Exits.abort.code })
     },
+    onSubmit: () => {},
   })
 
   return { ...context, flags: { ...context.flags, ...mutated } }

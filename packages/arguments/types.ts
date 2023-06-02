@@ -1,8 +1,9 @@
 // noinspection JSUnusedGlobalSymbols
 
-import type prompts from 'prompts'
+import prompts, { type Choice } from 'prompts'
 import type yargs from 'yargs'
 import { type AllFlags, type Routes } from './routes'
+import { AUTOSUGGEST_CHOICES, autoSuggestDirectories } from './utils'
 
 type Simple = string | number | symbol
 
@@ -47,7 +48,7 @@ export class Choices implements Question {
     Object.assign(this, props)
   }
 
-  static from<T>({ message }: Question, type: SimpleEnum & T): Choices {
+  static from<T>({ message }: Omit<Question, `type`>, type: SimpleEnum & T): Choices {
     // TODO (olku): use enum 'key' as a value and enum 'value' as a title
     const choices = Object.values(type)
       .filter((x) => typeof x === `string`)
@@ -76,8 +77,36 @@ export class Secret implements Question {
     Object.assign(this, props)
   }
 
-  static from({ message }: Question): Secret {
+  static from({ message }: Omit<Question, `type`>): Secret {
     return new Secret({ message })
+  }
+}
+
+/** Auto-suggest directory on user input.
+ *
+ * Sample usage:
+ * <pre>
+ *   const Prompts: Questions = {
+ *     cwd: SuggestDirs.from({ message: `Current working directory`, }),
+ *   }
+ * </pre>
+ * */
+export class SuggestDirs implements Question {
+  // @ts-expect-error message property assigned via Object.assign(this, props)
+  message: string
+  type: `autocomplete`
+  choices: Choice[]
+  suggest: (input: string, choices: Choice[]) => Promise<object[]>
+
+  private constructor(props: Omit<Question, `type` | `choices` | `suggest`>) {
+    this.type = `autocomplete`
+    this.choices = AUTOSUGGEST_CHOICES
+    this.suggest = autoSuggestDirectories
+    Object.assign(this, props)
+  }
+
+  static from({ message }: Omit<Question, `type` | `choices` | `suggest`>): SuggestDirs {
+    return new SuggestDirs({ message })
   }
 }
 

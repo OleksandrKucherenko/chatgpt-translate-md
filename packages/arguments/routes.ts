@@ -18,6 +18,8 @@ export enum GlobalFlags {
   ask = `ask`,
   /** enable debug mode of the tool, the same can be achieved by `DEBUG=*` */
   debug = `debug`,
+  /** current working directory */
+  cwd = `cwd`,
 }
 
 /** Translate specific flags. */
