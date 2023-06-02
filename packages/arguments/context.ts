@@ -2,7 +2,9 @@ import { Arguments } from './types'
 
 export interface TypedArguments extends Arguments {
   // TODO (olku): add typed arguments from yargs
+  cwd: string
   source: string
+  ignore: string
   overwrite: boolean
   language: string
 }

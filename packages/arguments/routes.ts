@@ -26,6 +26,8 @@ export enum GlobalFlags {
 export enum TranslateFlags {
   /** source files glob */
   source = `source`,
+  /** ignore files glob */
+  ignore = `ignore`,
   /** Boolean, overwrite source files or compose with language extension. */
   overwrite = `overwrite`,
   /** Target language. */

@@ -1,10 +1,12 @@
 import * as gpt from 'openai'
 import ora from 'ora'
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { encode } from 'gpt-3-encoder'
-import { log, logD } from '@this/configuration'
+import { v4 as uuid } from 'uuid'
+import { PromisePool, type OnProgressCallback } from '@supercharge/promise-pool'
+import { Dirs, dumpD, log } from '@this/configuration'
 import { createFile, isFileExists } from './utils'
-import { composeAtomicCounter, increment } from '@this/gc'
 
 export const MARKDOWN_SPLITTER = `\n\n`
 
@@ -69,20 +71,22 @@ export const askGPT = async (text: string, prompt: string): Promise<string> => {
     top_p: 0.5,
   })
 
+  const logs = `GPT-3:\n\n${prompt}\n\n${text}\n\nAnswer:\n\n${content}\n\n`
+  await createFile(logs, path.resolve(Dirs.local, `${uuid()}.log`))
+
   if (content === '') log('⛔ Translation result is empty')
 
   return content
 }
 
-export const optimizeChunks = (text: string, options?: Options) => {
-  const { maxToken, splitter } = { ...DefaultOptions, ...options }
-  const chunks = text.split(splitter)
+type Chunked = { [key: number]: string }
 
-  logD(`Potential chunks: %o content length: %o`, chunks.length, text.length)
+const mergeChunks = (chunks: string[], options?: Options) => {
+  const { maxToken, splitter } = { ...DefaultOptions, ...options }
 
   let chunkIndex = 0
   let delimiter = ''
-  const merged = chunks.reduce(
+  const merged: Chunked = chunks.reduce(
     (prev, current) => {
       const prevChunk = prev[chunkIndex]
       const testChunk = prevChunk + delimiter + current
@@ -96,43 +100,80 @@ export const optimizeChunks = (text: string, options?: Options) => {
 
       return next
     },
-    ['']
+    { 0: '' } as Chunked
   )
 
-  // count total number of used tokens
-  const totalTokens = merged.reduce((prev, chunk) => prev + encode(chunk).length, 0)
-  logD(`Chunks: %o vs. %o, tokens: %o`, chunks.length, merged.length, totalTokens)
-
-  return merged
+  return Object.values(merged)
 }
 
-export const translate = async (content: string, language: string): Promise<string> => {
-  log('Start translating...')
-  const chunks = optimizeChunks(content)
-  const executed = composeAtomicCounter()
-  const prompt = composePrompt(language)
-  const jobs = chunks.map((chunk) => increment(executed, askGPT(chunk, prompt)))
+export const optimizeChunks = (text: string, options?: Options) => {
+  const { splitter } = { ...DefaultOptions, ...options }
+  const draftChunks = text.split(splitter)
+  dumpD(`Potential chunks: %o content length: %o`, draftChunks.length, text.length)
 
-  const spinner = ora('Translating...').start()
-  const updater = setInterval(() => (spinner.text = `Translating... ${executed.counter[0]}/${chunks.length}`), 1000)
-  const translations = await Promise.allSettled(jobs)
-  clearInterval(updater)
-  spinner.succeed('Translation completed!')
+  // optimize chunks by merging parts
+  const chunks = mergeChunks(draftChunks, options)
+
+  // count total number of used tokens
+  const totalTokens = chunks.reduce((total, chunk) => total + encode(chunk).length, 0)
+  dumpD(`Potential chunks: %o ~> %o, used tokens: %o`, draftChunks.length, chunks.length, totalTokens)
+
+  return { chunks, totalTokens, contentLength: text.length }
+}
+
+// const delay = (ms: number) => new Promise((_) => setTimeout(_, ms))
+
+export const translate = async (src: string, content: string, language: string): Promise<string> => {
+  const startedAt = new Date()
+  dumpD('Start translating...')
+  const entity = optimizeChunks(content)
+  const prompt = composePrompt(language)
+  dumpD('prompt: %o', prompt)
+
+  const spinner = ora(`Translating... ${src}`).start()
+  const progress: OnProgressCallback<string> = (_v, pool) => {
+    const active = pool.activeTaskCount()
+    const processed = pool.processedCount()
+    const progress = pool.processedPercentage().toFixed(1)
+    const time = `${new Date().getTime() - startedAt.getTime()}ms`
+    spinner.text = `Translating: ${active}|${processed}|${progress}% - ${time}`
+  }
+  const { results, errors } = await PromisePool.for(entity.chunks)
+    .withConcurrency(5)
+    .onTaskStarted(progress)
+    .onTaskFinished(progress)
+    .useCorrespondingResults()
+    .process(async (chunk, _index) => askGPT(chunk, prompt))
+
+  const stats = {
+    content: entity.contentLength,
+    tokens: entity.totalTokens,
+    chunks: entity.chunks.length,
+    time: `${new Date().getTime() - startedAt.getTime()}ms`,
+    result: results.length,
+    failed: errors.map(({ message }) => message),
+  }
+  if (errors.length > 0) {
+    spinner.fail(`Failed ${src} with errored chunks: ${errors.length}`)
+
+    throw new Error(`Failed chunks: ${JSON.stringify(stats.failed)}`)
+  } else {
+    spinner.succeed(`Processed: ${src}, ${JSON.stringify(stats)}`)
+  }
 
   // if one of the sections failed, replace it with the original text
-  const translated = translations
-    .map((f, index) => (f.status === 'fulfilled' ? f.value : chunks[index]))
+  const translated = results
+    .map((f, index) => (f === PromisePool.failed ? entity.chunks[index] : f))
     .join(MARKDOWN_SPLITTER)
 
-  logD('translations: %O', translations)
-  logD('extracted: %O', translated)
+  dumpD('extracted: %O', translated)
 
   return translated
 }
 
 export const translateFile = async (source: string, destination: string, language: string) => {
   const content = await fs.readFile(source, 'utf-8')
-  const translated = await translate(content, language)
+  const translated = await translate(source, content, language)
 
   // Check if the translation is same as the original
   if (await isFileExists(destination)) {
@@ -143,5 +184,5 @@ export const translateFile = async (source: string, destination: string, languag
 
   await createFile(translated, destination)
 
-  return translated
+  return { source, destination, content, translated }
 }

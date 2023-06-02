@@ -7,6 +7,7 @@ export const Defaults: Predefined = {
   ask: [!Boolean(process.env.CI), true],
   token: [process.env.OPENAI_API_TOKEN, `<token>`],
   source: ['**/*.md', `<glob>`],
+  ignore: ['**/*.ukrainian.md', `<glob>`],
   language: [`Ukrainian`, `<language>`],
   overwrite: [false],
   debug: [false],
@@ -16,7 +17,10 @@ export const Defaults: Predefined = {
 /** User friendly questions. */
 export const Prompts: Questions = {
   source: {
-    message: `Source files glob or file path (ex. ./**/*.md):`,
+    message: `Source files, glob or file path (ex. ./**/*.md):`,
+  },
+  ignore: {
+    message: `Ignore files (ex. ./**/*.ukrainian.md, /**):`,
   },
   overwrite: {
     message: `Overwrite source files or compose with language extension?`,
@@ -41,8 +45,12 @@ export const Options: Switches = {
     alias: `s`,
     describe: `Source files glob`,
   },
+  ignore: {
+    alias: `i`,
+    describe: `Exclude source files from processing by glob`,
+  },
   overwrite: {
-    alias: [`o`, `replace`],
+    alias: [`o`, `replace`, `force`, `f`],
     describe: `Boolean, overwrite source files or compose with language extension.`,
     type: `boolean`,
     defaultDescription: `false`,
@@ -78,7 +86,13 @@ export const Yargs: Commands = {
   translate: {
     aliases: [`$0`],
     description: `Translate file(s) from one language to another over ChatGPT`,
-    options: [TranslateFlags.source, TranslateFlags.overwrite, TranslateFlags.language],
-    questions: [GlobalFlags.cwd, TranslateFlags.source, TranslateFlags.overwrite, TranslateFlags.language],
+    options: [TranslateFlags.language, TranslateFlags.source, TranslateFlags.ignore, TranslateFlags.overwrite],
+    questions: [
+      TranslateFlags.language,
+      GlobalFlags.cwd,
+      TranslateFlags.source,
+      TranslateFlags.ignore,
+      TranslateFlags.overwrite,
+    ],
   },
 }

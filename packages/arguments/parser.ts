@@ -1,7 +1,7 @@
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import chalk from 'chalk'
-import prompts from 'prompts'
+import prompts, { type Choice } from 'prompts'
 import MaskData from 'maskdata'
 
 import { dumpD, log, logW, Exits } from '@this/configuration'
@@ -10,8 +10,9 @@ import { Defaults, Options, Prompts, Yargs } from './params'
 import { type Command, type Extras, type Predefined, type Question, type Switch } from './types'
 import { type AllFlags, ApplicationName, ApplicationVersion, GlobalFlags, Routes } from './routes'
 import { type Context, type TypedArguments } from './context'
+import { FROM_ARGS } from './utils'
 
-const mask = <T extends object>(data: T) => {
+export const mask = <T extends object>(data: T) => {
   const options = {
     passwordFields: [`token`, `t`, `flags.token`, `flags.t`, `token[0]`],
     passwordMaskOptions: { maskWith: `*`, unmaskedStartCharacters: 3, unmaskedEndCharacters: 4 },
@@ -154,6 +155,12 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
       type: type ?? `text`,
       ...rest,
       ...(type === `select` ? {} : { initial: context.flags[name] }),
+      ...(type === `autocomplete` ? {} : { initial: context.flags[name] }),
+    }
+
+    // special case: for making provided value from arguments visible we should include it into choices
+    if (obj.type === 'autocomplete') {
+      obj.choices = [...(obj?.choices as Choice[]), { value: context.flags[name], title: FROM_ARGS }]
     }
 
     return obj

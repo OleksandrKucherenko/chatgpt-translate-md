@@ -914,6 +914,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@supercharge/promise-pool@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "@supercharge/promise-pool@npm:2.4.0"
+  checksum: d21223256ba05c34a29742172e2b625627038e731f511de0b728c638531096ce12d1a4156fd04e3b34eec980ce8445a66a9d8d070fde7886c9b33a0d759ab2e9
+  languageName: node
+  linkType: hard
+
 "@this/arguments@*, @this/arguments@workspace:packages/arguments":
   version: 0.0.0-use.local
   resolution: "@this/arguments@workspace:packages/arguments"
@@ -1963,6 +1970,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "cli-gpt@workspace:clis/gpt"
   dependencies:
+    "@supercharge/promise-pool": ^2.4.0
     "@this/arguments": "*"
     "@this/configuration": "*"
     "@this/gc": "*"

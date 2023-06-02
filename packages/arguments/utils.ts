@@ -1,5 +1,8 @@
 import { glob } from 'glob'
 import fs from 'node:fs'
+import { type Choice } from 'prompts'
+
+export const FROM_ARGS = `provided via arguments`
 
 /** force prompts to render 10 lines */
 export const AUTOSUGGEST_CHOICES = [
@@ -15,9 +18,10 @@ export const AUTOSUGGEST_CHOICES = [
   { title: `reserved-5`, value: `./` },
 ]
 
-export const autoSuggestDirectories = async (input: string, _choices: unknown[]) => {
+export const autoSuggestDirectories = async (input: string, choices: Choice[]) => {
   const cwd = process.cwd()
-  const start = (input.length === 0 ? cwd : input).replace('~', process.env.HOME ?? '~')
+  const provided = choices.find(({ title }) => title === FROM_ARGS)?.value ?? cwd
+  const start = (input.length === 0 ? provided : input).replace('~', process.env.HOME ?? '~')
   const files = await glob(`${start}*`, { cwd, maxDepth: 1 })
   const value = files?.[0] ?? start
 

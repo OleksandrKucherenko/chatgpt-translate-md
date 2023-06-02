@@ -15,6 +15,7 @@
     "cleanup": "rimraf dist"
   },
   "dependencies": {
+    "@supercharge/promise-pool": "^2.4.0",
     "@this/arguments": "*",
     "@this/configuration": "*",
     "@this/gc": "*",
