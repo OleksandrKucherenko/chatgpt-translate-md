@@ -39,7 +39,7 @@ dependency gsed "4.*" "brew install gnu-sed"
 dependency timeout "9.*" "brew install coreutils"
 
 # Clouds
-dependency docker "20.*.*" "brew remove docker && brew install --cask docker"
+dependency docker "23.*.*" "brew remove docker && brew install --cask docker"
 
 # certificate generation
 optional mkcert "1.4.*" "brew install mkcert"
