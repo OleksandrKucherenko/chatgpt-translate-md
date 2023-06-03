@@ -5,7 +5,7 @@ import { type Choice } from 'prompts'
 export const FROM_ARGS = `provided via arguments`
 
 /** force prompts to render 10 lines */
-export const AUTOSUGGEST_CHOICES = [
+export const AUTOSUGGESTION_CHOICES = [
   { title: `Current working directory`, value: process.cwd() },
   { title: `Parent directory`, value: `../` },
   { title: `Grand directory`, value: `../../` },
@@ -18,25 +18,31 @@ export const AUTOSUGGEST_CHOICES = [
   { title: `reserved-5`, value: `./` },
 ]
 
+const cwd = process.cwd()
+
+const isDirectory = (file: string) => {
+  // security permission error is possible for some directories
+  try {
+    return fs.lstatSync(file).isDirectory()
+  } catch (error) {
+    return false
+  }
+}
+
 export const autoSuggestDirectories = async (input: string, choices: Choice[]) => {
-  const cwd = process.cwd()
   const provided = choices.find(({ title }) => title === FROM_ARGS)?.value ?? cwd
   const start = (input.length === 0 ? provided : input).replace('~', process.env.HOME ?? '~')
   const files = await glob(`${start}*`, { cwd, maxDepth: 1 })
+  const hiddenFiles = await glob(`${start}.??*`, { cwd, maxDepth: 1 })
   const value = files?.[0] ?? start
 
-  const suggestions = files ?? [value]
+  // provide only the unique list of suggestions, sorted alphabetically
+  const merged = [...files, ...hiddenFiles, !files && !hiddenFiles ? value : null].filter(Boolean) as string[]
+  const suggestions = [...new Set(merged)].sort((a, b) => a.localeCompare(b))
 
   return suggestions
     .filter((f) => f !== '.' && f !== '..')
-    .filter((f) => {
-      // security permission error is possible for some directories
-      try {
-        return fs.lstatSync(f).isDirectory()
-      } catch (error) {
-        return false
-      }
-    })
-    .map((f) => ({ title: f }))
+    .filter((f) => isDirectory(f))
+    .map((f) => ({ title: f, value: f }))
     .slice(0, 10)
 }
