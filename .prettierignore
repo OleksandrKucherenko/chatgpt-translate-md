@@ -1,6 +1,5 @@
 .yarn/
 .secrets/
-.vscode/
 .husky/
 node_modules/
 

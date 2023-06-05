@@ -1,4 +1,4 @@
-import { type Context } from 'arguments'
+import { type Context } from '@this/arguments'
 import { type PromisePoolError } from '@supercharge/promise-pool'
 
 export type Content = {

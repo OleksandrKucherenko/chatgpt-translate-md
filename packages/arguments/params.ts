@@ -5,10 +5,11 @@ import { v4 as uuid } from 'uuid'
 /** Values of the parameters extracted from global environment. */
 export const Defaults: Predefined = {
   // for boolean values required trick string-to-boolean conversion
+  // eslint-disable-next-line no-extra-boolean-cast
   ask: [!Boolean(process.env.CI), true],
   token: [process.env.OPENAI_API_TOKEN, `<token>`],
-  source: ['**/*.md', `<glob>`],
-  ignore: ['**/*.ukrainian.md', `<glob>`],
+  source: [`**/*.md`, `<glob>`],
+  ignore: [`**/*.ukrainian.md`, `<glob>`],
   language: [`Ukrainian`, `<language>`],
   overwrite: [false],
   debug: [false],

@@ -1,14 +1,17 @@
 import { encode } from 'gpt-3-encoder'
 import { dumpD } from '@this/configuration'
-import { DocumentStrategy, Content, JobResults, JobContext } from './types'
+import type { DocumentStrategy, Content, JobResults, JobContext } from './types'
 
 export const MARKDOWN_SPLITTER = `\n\n`
 
 /** Max allowed tokens to process in one chunk. */
 export const MAX_TOKENS = 2000
 
-type Options = { maxToken: number; splitter: string }
-type Chunked = { [key: number]: string }
+interface Options {
+  maxToken: number
+  splitter: string
+}
+type Chunked = Record<number, string>
 
 export const DefaultOptions: Options = { maxToken: MAX_TOKENS, splitter: MARKDOWN_SPLITTER }
 
@@ -33,12 +36,12 @@ export const composePrompt = ({ job: { language } }: JobContext): string => {
   return `Please translate the given text into ${language} and output it in markdown format.`
 }
 
-const optimizeChunks = (chunks: string[], options?: Options) => {
+const optimizeChunks = (chunks: string[], options?: Options): string[] => {
   const { maxToken, splitter } = { ...DefaultOptions, ...options }
 
   let chunkIndex = 0
-  let delimiter = ''
-  const merged: Chunked = chunks.reduce(
+  let delimiter = ``
+  const merged: Chunked = chunks.reduce<Chunked>(
     (prev, current) => {
       const prevChunk = prev[chunkIndex]
       const testChunk = prevChunk + delimiter + current
@@ -52,7 +55,7 @@ const optimizeChunks = (chunks: string[], options?: Options) => {
 
       return next
     },
-    { 0: '' } as Chunked
+    { 0: `` }
   )
 
   return Object.values(merged)

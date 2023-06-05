@@ -10,7 +10,7 @@
   "main": "src/index.ts",
   "bin": "src/index.ts",
   "scripts": {
-    "build": "rimraf dist && tsc --showConfig",
+    "build": "rimraf dist && tsc",
     "dev": "ts-node src/index.ts",
     "cleanup": "rimraf dist"
   },

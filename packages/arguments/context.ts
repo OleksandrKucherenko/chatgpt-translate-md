@@ -1,4 +1,4 @@
-import { Arguments } from './types'
+import type { Arguments } from './types'
 
 export interface TypedArguments extends Arguments {
   // TODO (olku): add typed arguments from yargs
@@ -18,6 +18,7 @@ export interface Context {
   flags: TypedArguments
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Storage {
   // TODO (olku): add database/storage specific context
 }

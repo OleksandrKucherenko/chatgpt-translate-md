@@ -20,7 +20,7 @@ export const MASK_OPTIONS: MaskData.JsonMask2Configs = {
 }
 
 /** Helper function that removes sensitive information from outputs. */
-export const mask = <T extends object>(data: T, options: MaskData.JsonMask2Configs = MASK_OPTIONS) => {
+export const mask = <T extends object>(data: T, options: MaskData.JsonMask2Configs = MASK_OPTIONS): T => {
   return MaskData.maskJSON2(data, options)
 }
 
@@ -159,7 +159,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
 
   const command = commands[execCommand]
   const toConfirm = (command.questions ?? []).map((name) => {
-    if (!questions[name]) throw new Error(`Prompts are not defined for option: ${name}`)
+    // if (!questions[name]) throw new Error(`Prompts are not defined for option: ${name}`)
     const { type, ...rest } = questions[name] as Question
 
     const obj: prompts.PromptObject = {
@@ -171,7 +171,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
     }
 
     // special case: for making provided value from arguments visible we should include it into choices
-    if (obj.type === 'autocomplete') {
+    if (obj.type === `autocomplete`) {
       obj.choices = [...(obj?.choices as Choice[]), { value: context.flags[name], title: FROM_ARGS }]
     }
 
@@ -179,7 +179,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
   })
   dumpD(`to confirm %O`, toConfirm)
 
-  if (!interactive) {
+  if (interactive === false) {
     reportDefaultResolutions(context, toConfirm)
     return context
   }

@@ -6,10 +6,7 @@ module.exports = {
   },
   plugins: ['prettier'],
   parser: '@typescript-eslint/parser',
-  extends: [
-    'standard-with-typescript',
-    'prettier',
-  ],
+  extends: ['standard-with-typescript', 'prettier'],
   overrides: [],
   parserOptions: {
     ecmaVersion: 'latest',
@@ -32,10 +29,12 @@ module.exports = {
   ],
   rules: {
     'prettier/prettier': 'error',
-    'quotes': ['error', 'backtick', { 'avoidEscape': true, 'allowTemplateLiterals': true }],
+    quotes: ['error', 'backtick', { avoidEscape: true, allowTemplateLiterals: true }],
     /* express 5 support promises */
     '@typescript-eslint/no-misused-promises': 'off',
     /* unused variables is not an issue, only warning */
     '@typescript-eslint/no-unused-vars': 'warn',
+    /* allow any in template strings */
+    '@typescript-eslint/restrict-template-expressions': 'warn',
   },
 }

@@ -4,14 +4,14 @@ import { glob } from 'glob'
 import { PromisePool } from '@supercharge/promise-pool'
 
 import { Dirs, dumpD, Exits, log, logD } from '@this/configuration'
-import { type Context, TypedArguments } from '@this/arguments'
+import type { Context, TypedArguments } from '@this/arguments'
 
 import { translateFile } from './gpt'
 import { createFile } from './utils'
 import { type Job, type JobError } from './types'
 
-type FindOptions = Pick<TypedArguments, 'cwd' | 'ignore' | 'list'>
-type DestinationOptions = Pick<TypedArguments, 'overwrite' | 'language' | 'cwd'>
+type FindOptions = Pick<TypedArguments, `cwd` | `ignore` | `list`>
+type DestinationOptions = Pick<TypedArguments, `overwrite` | `language` | `cwd`>
 
 /** How many files process at the same time. */
 export const MAX_CONCURRENCY_FILES = 5
@@ -20,12 +20,12 @@ export const MAX_CONCURRENCY_FILES = 5
 export const findFilesByGlob = async (search: string, { cwd, ignore, list }: FindOptions): Promise<string[]> => {
   dumpD(`cwd: %s, search: %s, ignore: %s, is list: %s`, cwd, search, ignore, list)
 
-  let files: string[] = []
+  const files: string[] = []
 
-  if (list) {
+  if (list === true) {
     if (!fs.existsSync(search)) throw new Error(`File ${search} does not exist`)
-    const content = await fs.promises.readFile(search, 'utf-8')
-    const searches = content.split('\n')
+    const content = await fs.promises.readFile(search, `utf-8`)
+    const searches = content.split(`\n`)
     const linesOptions = { cwd, ignore, list: false }
 
     for (const line of searches) {
@@ -38,7 +38,7 @@ export const findFilesByGlob = async (search: string, { cwd, ignore, list }: Fin
   logD(`found files for processing: %o`, files.length)
 
   // sort and filter out empty values, left only unique value
-  return [...new Set(files.filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b))
+  return [...new Set(files.filter(Boolean))].sort((a, b) => a.localeCompare(b))
 }
 
 /** Suggest destination file name based on source file name, language and overwrite flag. */
@@ -62,14 +62,14 @@ export const composeJobs = (files: string[], { cwd, language, overwrite }: Desti
 }
 
 /** Report all captured errors into session error.log file and force error exit. */
-export const reportErrors = async (errors: JobError[], context: Context) => {
+export const reportErrors = async (errors: JobError[], context: Context): Promise<void> => {
   if (errors.length === 0) return
 
   const { session } = context.flags
-  const reportFile = path.resolve(Dirs.local, session, 'errors.log')
+  const reportFile = path.resolve(Dirs.local, session, `errors.log`)
 
   // extract source files names and dump to file
-  const content = errors.map((e) => e.item.source).join('\n')
+  const content = errors.map((e) => e.item.source).join(`\n`)
   await createFile(reportFile, content)
 
   // dump errors to console
