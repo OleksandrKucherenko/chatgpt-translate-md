@@ -3,7 +3,7 @@ import path from 'node:path'
 import { glob } from 'glob'
 import { PromisePool } from '@supercharge/promise-pool'
 
-import { Dirs, dumpD, Exits, log, logD } from '@this/configuration'
+import { Dirs, dumpD, Exits, log } from '@this/configuration'
 import type { Context, TypedArguments } from '@this/arguments'
 
 import { translateFile } from './gpt'
@@ -29,13 +29,16 @@ export const findFilesByGlob = async (search: string, { cwd, ignore, list }: Fin
     const linesOptions = { cwd, ignore, list: false }
 
     for (const line of searches) {
+      if (line.startsWith(`#`)) continue // skip comments
+      if (line.trim().length === 0) continue // skip empty lines
+
       files.push(...(await findFilesByGlob(line, linesOptions)))
     }
   } else {
     files.push(...(await glob(search, { cwd, ignore })))
   }
 
-  logD(`found files for processing: %o`, files.length)
+  dumpD(`found files for processing: %o`, files.length)
 
   // sort and filter out empty values, left only unique value
   return [...new Set(files.filter(Boolean))].sort((a, b) => a.localeCompare(b))
@@ -70,7 +73,7 @@ export const reportErrors = async (errors: JobError[], context: Context): Promis
 
   // extract source files names and dump to file
   const content = errors.map((e) => e.item.source).join(`\n`)
-  await createFile(reportFile, content)
+  await createFile(content, reportFile)
 
   // dump errors to console
   errors

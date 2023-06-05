@@ -14,7 +14,11 @@
       "cwd": "${workspaceRoot}",
       "args": ["--help"],
       "program": "${workspaceFolder}/clis/gpt/src/index.ts",
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "env": {
+        "NODE_ENV": "development",
+        "NODE_NO_WARNINGS": "1"
+      }
     },
     {
       "type": "node",
@@ -22,11 +26,25 @@
       "name": "Translation - List of files",
       "skipFiles": ["<node_internals>/**"],
       "runtimeExecutable": "node",
+      "runtimeVersion": "18.15.0",
       "runtimeArgs": ["--loader=ts-node/esm", "--experimental-specifier-resolution=node"],
       "cwd": "${workspaceRoot}",
-      "args": ["translate", "--source", "${workspaceFolder}/output/processing.txt", "--list"],
+      "args": [
+        "--source",
+        "${workspaceFolder}/output/processing.txt",
+        "--list",
+        "--cwd",
+        "../../../../githubs/typescript-book",
+        "--no-ask"
+      ],
       "program": "${workspaceFolder}/clis/gpt/src/index.ts",
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "console": "integratedTerminal",
+      "env": {
+        "DEBUG": "app:*",
+        "NODE_ENV": "development",
+        "NODE_NO_WARNINGS": "1"
+      }
     }
   ]
 }

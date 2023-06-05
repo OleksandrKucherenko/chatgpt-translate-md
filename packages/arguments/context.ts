@@ -9,7 +9,6 @@ export interface TypedArguments extends Arguments {
   overwrite: boolean
   language: string
   sourceList: string
-  session: string
   token: string
 }
 

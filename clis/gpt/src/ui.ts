@@ -1,13 +1,13 @@
 import ora from 'ora'
-import { OnProgressCallback, PromisePool, PromisePoolError } from '@supercharge/promise-pool'
-import { PromisePoolExecutor } from '@supercharge/promise-pool/dist/promise-pool-executor'
+import { type OnProgressCallback, type PromisePool, type PromisePoolError } from '@supercharge/promise-pool'
+import { type PromisePoolExecutor } from '@supercharge/promise-pool/dist/promise-pool-executor'
 
 import { dumpD } from '@this/configuration'
-import { JobContext, UiStrategy } from './types'
+import { type JobContext, type UiStrategy } from './types'
 
 const reportErrorsMessages = <T>(errors: Array<PromisePoolError<T>>): string[] => {
   // TODO (olku): report errors messages to array
-  dumpD('reportErrorsMessages', errors)
+  dumpD(`reportErrorsMessages %O`, errors)
 
   return []
 }
@@ -20,7 +20,7 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
   /** refresh the progress on any job start or finish. When detected that all jobs processed - finalize progress. */
   const progress: OnProgressCallback<any> = (_v, pool) => {
     const executor = pool as PromisePoolExecutor<T, any>
-    const active = pool.activeTaskCount()
+    const active = pool.activeTasksCount()
     const processed = pool.processedCount()
     const progress = pool.processedPercentage().toFixed(1)
     const time = `${new Date().getTime() - startedAt.getTime()}ms`
@@ -42,8 +42,8 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
 }
 
 export const ConsoleUi: UiStrategy = {
-  title: 'Console UI',
-  description: 'Show all messages in console',
+  title: `Console UI`,
+  description: `Show all messages in console`,
 }
 
 export default ConsoleUi

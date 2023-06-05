@@ -155,7 +155,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
     flags: { ask: interactive, command: execCommand },
   } = context
 
-  log(`command mode: %s`, execCommand)
+  log(`%s mode: %s`, chalk.yellowBright(`command`), chalk.blue(execCommand))
 
   const command = commands[execCommand]
   const toConfirm = (command.questions ?? []).map((name) => {

@@ -56,16 +56,17 @@ export const Options: Switches = {
     describe: `Source files glob`,
   },
   list: {
-    alias: [`l`, `source-list`],
+    alias: [`list-of-files`],
     describe: `Treat source as a list of files/globs`,
     type: `boolean`,
+    defaultDescription: `false`,
   },
   ignore: {
     alias: `i`,
     describe: `Exclude source files from processing by glob`,
   },
   overwrite: {
-    alias: [`o`, `replace`, `force`, `f`],
+    alias: [`replace`, `force`],
     describe: `Boolean, overwrite source files or compose with language extension.`,
     type: `boolean`,
     defaultDescription: `false`,

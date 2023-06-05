@@ -153,6 +153,7 @@ export type Commands = Record<`${Routes}`, Command>
 export interface Arguments extends Record<`${AllFlags}`, Resolved> {
   ask: boolean
   command: Routes
+  session: string
 }
 
 export type Extras = {
