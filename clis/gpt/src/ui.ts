@@ -13,17 +13,17 @@ const reportErrorsMessages = <T>(errors: Array<PromisePoolError<T>>): string[] =
 }
 
 export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePool<T> => {
-  const startedAt = new Date()
+  // const startedAt = new Date()
   const { source } = context.job
   const spinner = ora(`Translating... ${source}`).start()
 
   /** refresh the progress on any job start or finish. When detected that all jobs processed - finalize progress. */
-  const progress: OnProgressCallback<any> = (_v, pool) => {
+  const progress: OnProgressCallback<T> = (_v, pool) => {
     const executor = pool as PromisePoolExecutor<T, any>
     const active = pool.activeTasksCount()
     const processed = pool.processedCount()
     const progress = pool.processedPercentage().toFixed(1)
-    const time = `${new Date().getTime() - startedAt.getTime()}ms`
+    // const time = `${new Date().getTime() - startedAt.getTime()}ms`
     const total = executor.items().length
     const totalErrors = executor.errors().length
 
@@ -34,7 +34,7 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
         spinner.succeed(`Processed: ${source}, stats: ${JSON.stringify(context.stats)}`)
       }
     } else {
-      spinner.text = `Translating: ${active}|${processed}|${progress}% - ${time}`
+      spinner.text = `Translating: ${active}|${processed}|${progress}%`
     }
   }
 
@@ -47,3 +47,10 @@ export const ConsoleUi: UiStrategy = {
 }
 
 export default ConsoleUi
+
+// Refs:
+// - https://github.com/sindresorhus/ora
+// - https://github.com/jbcarpanelli/spinnies
+// - https://github.com/SamVerschueren/listr
+// - https://github.com/LaboratorioInternacionalWeb/Multispinners
+// - https://github.com/sindresorhus/cli-spinners
