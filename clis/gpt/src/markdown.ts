@@ -1,5 +1,8 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { encode } from 'gpt-3-encoder'
-import { dumpD } from '@this/configuration'
+import { Dirs, dumpD } from '@this/configuration'
+import Handlebars from 'handlebars'
 import type { DocumentStrategy, Content, JobResults, JobContext } from './types'
 
 export const MARKDOWN_SPLITTER = `\n\n`
@@ -15,25 +18,18 @@ type Chunked = Record<number, string>
 
 export const DefaultOptions: Options = { maxToken: MAX_TOKENS, splitter: MARKDOWN_SPLITTER }
 
-export const composePrompt = ({ job: { language } }: JobContext): string => {
-  // TODO: Improve prompt (trusting user input currently)
-  // https://raw.githubusercontent.com/smikitky/markdown-gpt-translator/main/prompt-example.md
+export const composePrompt = (context: JobContext): string => {
+  const { template: fileName } = context.flags
+  const variants = [path.resolve(Dirs.root, fileName), path.resolve(Dirs.assets, fileName), path.resolve(fileName)]
+  const foundPath = variants.find((p) => fs.existsSync(p))
+  if (foundPath === undefined) {
+    throw new Error(`Template file not found by pathes: ${variants.join(`, `)}`)
+  }
 
-  /**
-   * I am translating the React documentation for %%%%%.
-   * Please translate the Markdown content I'll paste later to %%%%%.
-   *
-   * You must strictly follow the rules below.
-   *
-   * - Never change the Markdown markup structure. Don't add or remove links. Do not change any URL.
-   * - Never change the contents of code blocks even if they appear to have a bug. Importantly, never
-   *    touch lines containing the `omittedCodeBlock-xxxxxx` keyword.
-   * - Always preserve the original line breaks. Do not add or remove blank lines.
-   * - Never touch the permalink such as `{ try-react }` at the end of each heading.
-   * - Never touch HTML-like tags such as `<Notes>` or `<YouWillLearn>`.
-   */
+  const content = fs.readFileSync(foundPath, `utf-8`)
+  const template = Handlebars.compile(content)
 
-  return `Please translate the given text into ${language} and output it in markdown format.`
+  return template(context).trim()
 }
 
 const optimizeChunks = (chunks: string[], options?: Options): string[] => {

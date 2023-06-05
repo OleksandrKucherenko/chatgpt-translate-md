@@ -10,6 +10,7 @@ export interface TypedArguments extends Arguments {
   language: string
   sourceList: string
   token: string
+  template: string
 }
 
 /** initial context, with parsed command line arguments. */

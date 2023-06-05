@@ -1,6 +1,9 @@
-import { type Commands, type Predefined, type Questions, Secured, SuggestDirs, type Switches } from './types'
-import { GlobalFlags, TranslateFlags } from './routes'
+import path from 'node:path'
 import { v4 as uuid } from 'uuid'
+
+import { Dirs } from '@this/configuration'
+import { GlobalFlags, TranslateFlags } from './routes'
+import { type Commands, type Predefined, type Questions, Secured, SuggestDirs, type Switches } from './types'
 
 /** Values of the parameters extracted from global environment. */
 export const Defaults: Predefined = {
@@ -13,9 +16,10 @@ export const Defaults: Predefined = {
   language: [`Ukrainian`, `<language>`],
   overwrite: [false],
   debug: [false],
-  cwd: [process.cwd()],
+  cwd: [process.cwd(), `<dir_path>`],
   list: [false],
   session: [uuid()],
+  template: [path.relative(Dirs.root, path.resolve(Dirs.assets, `markdown-simple.v1.handlebars`)), `<file_path>`],
 }
 
 /** User friendly questions. */
@@ -40,6 +44,9 @@ export const Prompts: Questions = {
   },
   language: {
     message: `Target language in Human readable form (ex. Ukrainian, Spanish, Swedish):`,
+  },
+  template: {
+    message: `ChatGPT Prompt template file (ex. markdown-simple.v1.handlesbars, ../custom.handlesbars):`,
   },
   token: {
     message: `OpenAI ChatGPT API Access Token (sk-xxxx):`,
@@ -95,6 +102,10 @@ export const Options: Switches = {
   cwd: {
     describe: `Current working directory for file search operations. Defaults to process.cwd().`,
   },
+  template: {
+    alias: [`prompt`],
+    describe: `ChatGPT Prompt template file (relative to monorepo root folder or full path).`,
+  },
 }
 
 /** Yargs commands configuration. */
@@ -108,6 +119,7 @@ export const Yargs: Commands = {
       TranslateFlags.list,
       TranslateFlags.ignore,
       TranslateFlags.overwrite,
+      TranslateFlags.template,
     ],
     questions: [
       TranslateFlags.language,

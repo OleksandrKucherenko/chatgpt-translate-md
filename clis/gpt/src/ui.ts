@@ -24,10 +24,10 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
     const processed = pool.processedCount()
     const progress = pool.processedPercentage().toFixed(1)
     // const time = `${new Date().getTime() - startedAt.getTime()}ms`
-    const total = executor.items().length
+    const totalJobs = executor.items().length
     const totalErrors = executor.errors().length
 
-    if (total === processed) {
+    if (totalJobs === processed) {
       if (totalErrors > 0) {
         spinner.fail(`Failed ${source} with errors: ${reportErrorsMessages(executor.errors())}`)
       } else {

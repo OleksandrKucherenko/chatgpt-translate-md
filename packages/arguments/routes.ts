@@ -41,6 +41,8 @@ export enum TranslateFlags {
   overwrite = `overwrite`,
   /** Target language. */
   language = `language`,
+  /** ChatGpt Prompt template file. */
+  template = `template`,
 }
 
 /** All flags that available for all commands. */
