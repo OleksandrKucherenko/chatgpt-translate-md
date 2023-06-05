@@ -1,18 +1,23 @@
 import * as gpt from 'openai'
-import ora from 'ora'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { encode } from 'gpt-3-encoder'
 import { v4 as uuid } from 'uuid'
-import { PromisePool, type OnProgressCallback } from '@supercharge/promise-pool'
-import { Dirs, dumpD, log } from '@this/configuration'
-import { createFile, isFileExists } from './utils'
+import { PromisePool } from '@supercharge/promise-pool'
+import { Dirs, Exits, log } from '@this/configuration'
+import { appendFile, createFile, isFileExists } from './utils'
+import { ChunkError, Content, type DocumentStrategy, type JobContext } from './types'
+import { Markdown } from './markdown'
+import { withUI } from './ui'
 
-export const MARKDOWN_SPLITTER = `\n\n`
+/** How many chunks process at the same time. */
+export const MAX_CONCURRENCY_CHUNKS = 5
 
-export const MAX_TOKENS = 2000
-
-export const ERROR_SAME_CONTENT = '⛔ The result of translation was same as the existed output file.'
+enum Errors {
+  SameContent = '⛔ The result of translation was same as the existed output file.',
+  EmptyContent = '⛔ The result of translation was empty.',
+  Unsupported = `⛔ Unsupported file type.`,
+  Failed = `⛔ Translation failed.`,
+}
 
 const MODEL = 'gpt-3.5-turbo'
 
@@ -22,11 +27,22 @@ const MSG_SYSTEM_PROMPT = {
 
 const MSG_USER_CONTENT = { role: gpt.ChatCompletionRequestMessageRoleEnum.User }
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? '<secret>'
+type TranslateResult = {
+  translated: string
+  contentChunks: Content
+  translatedChunks: Content
+}
 
-export type Options = { maxToken: number; splitter: string }
+type TranslateFileResult = {
+  content: string
+  translated: string
+}
 
-export const DefaultOptions: Options = { maxToken: MAX_TOKENS, splitter: MARKDOWN_SPLITTER }
+export const selectStrategy = (file: string): DocumentStrategy => {
+  if (file.endsWith(Markdown.extension)) return Markdown
+
+  throw new Error(Errors.Unsupported, { cause: file })
+}
 
 export const createGptClient = (apiKey: string) => {
   const configuration = new gpt.Configuration({ apiKey })
@@ -34,155 +50,106 @@ export const createGptClient = (apiKey: string) => {
   return new gpt.OpenAIApi(configuration)
 }
 
-export const composePrompt = (language: string): string => {
-  // TODO: Improve prompt (trusting user input currently)
-  // https://raw.githubusercontent.com/smikitky/markdown-gpt-translator/main/prompt-example.md
+export const askGPT = async (text: string, prompt: string, context: JobContext): Promise<string> => {
+  const openAIApi = createGptClient(context.flags.token)
 
-  /**
-   * I am translating the React documentation for %%%%%.
-   * Please translate the Markdown content I'll paste later to %%%%%.
-   *
-   * You must strictly follow the rules below.
-   *
-   * - Never change the Markdown markup structure. Don't add or remove links. Do not change any URL.
-   * - Never change the contents of code blocks even if they appear to have a bug. Importantly, never
-   *    touch lines containing the `omittedCodeBlock-xxxxxx` keyword.
-   * - Always preserve the original line breaks. Do not add or remove blank lines.
-   * - Never touch the permalink such as `{ try-react }` at the end of each heading.
-   * - Never touch HTML-like tags such as `<Notes>` or `<YouWillLearn>`.
-   */
-
-  return `Please translate the given text into ${language} and output it in markdown format.`
-}
-
-export const askGPT = async (text: string, prompt: string): Promise<string> => {
-  const openAIApi = createGptClient(OPENAI_API_KEY)
-
-  const {
-    data: {
-      choices: [{ message: { content: content } = { content: '' } }],
-    },
-  } = await openAIApi.createChatCompletion({
+  const query = {
     model: MODEL,
     messages: [
       { ...MSG_SYSTEM_PROMPT, content: prompt },
       { ...MSG_USER_CONTENT, content: text },
     ],
     top_p: 0.5,
-  })
+  }
 
-  const logs = `GPT-3:\n\n${prompt}\n\n${text}\n\nAnswer:\n\n${content}\n\n`
-  await createFile(logs, path.resolve(Dirs.local, `${uuid()}.log`))
+  const { data } = await openAIApi.createChatCompletion(query)
 
-  if (content === '') log('⛔ Translation result is empty')
+  const {
+    choices: [{ message: { content: content } = { content: '' } }],
+  } = data
+
+  // TODO (olku): extract statistics from response, inject it into context
+
+  if (content === '') throw new Error(Errors.EmptyContent)
 
   return content
 }
 
-type Chunked = { [key: number]: string }
+/** compose log file for each ChatGpt call, used unique UUID. */
+export const askGPTWithLogger = async (text: string, prompt: string, context: JobContext): Promise<string> => {
+  const { session } = context.flags
+  const reportFile = path.resolve(Dirs.local, session, `${uuid()}.log`)
+  const logs = `${MODEL}:\n----\n${prompt}\n----\n${text}\n----\n`
 
-const mergeChunks = (chunks: string[], options?: Options) => {
-  const { maxToken, splitter } = { ...DefaultOptions, ...options }
+  await createFile(logs, reportFile)
 
-  let chunkIndex = 0
-  let delimiter = ''
-  const merged: Chunked = chunks.reduce(
-    (prev, current) => {
-      const prevChunk = prev[chunkIndex]
-      const testChunk = prevChunk + delimiter + current
+  try {
+    const content = await askGPT(text, prompt, context)
+    await appendFile(`Answer:\n\n${content}\n----\n`, reportFile)
 
-      if (encode(testChunk).length > maxToken) {
-        return { ...prev, [++chunkIndex]: current }
-      }
+    return content
+  } catch (error: any) {
+    const errorLog = `Error:\n\n${JSON.stringify(error, null, 2)}\n----\n`
+    await appendFile(errorLog, reportFile)
 
-      const next = { ...prev, [chunkIndex]: testChunk }
-      delimiter = splitter
+    // TODO (olku): add into error log file hint how to execute tool with
+    //  failed file only, without other files
 
-      return next
-    },
-    { 0: '' } as Chunked
-  )
-
-  return Object.values(merged)
-}
-
-export const optimizeChunks = (text: string, options?: Options) => {
-  const { splitter } = { ...DefaultOptions, ...options }
-  const draftChunks = text.split(splitter)
-  dumpD(`Potential chunks: %o content length: %o`, draftChunks.length, text.length)
-
-  // optimize chunks by merging parts
-  const chunks = mergeChunks(draftChunks, options)
-
-  // count total number of used tokens
-  const totalTokens = chunks.reduce((total, chunk) => total + encode(chunk).length, 0)
-  dumpD(`Potential chunks: %o ~> %o, used tokens: %o`, draftChunks.length, chunks.length, totalTokens)
-
-  return { chunks, totalTokens, contentLength: text.length }
-}
-
-// const delay = (ms: number) => new Promise((_) => setTimeout(_, ms))
-
-export const translate = async (src: string, content: string, language: string): Promise<string> => {
-  const startedAt = new Date()
-  dumpD('Start translating...')
-  const entity = optimizeChunks(content)
-  const prompt = composePrompt(language)
-  dumpD('prompt: %o', prompt)
-
-  const spinner = ora(`Translating... ${src}`).start()
-  const progress: OnProgressCallback<string> = (_v, pool) => {
-    const active = pool.activeTaskCount()
-    const processed = pool.processedCount()
-    const progress = pool.processedPercentage().toFixed(1)
-    const time = `${new Date().getTime() - startedAt.getTime()}ms`
-    spinner.text = `Translating: ${active}|${processed}|${progress}% - ${time}`
+    error.log = reportFile
+    throw error
   }
-  const { results, errors } = await PromisePool.for(entity.chunks)
-    .withConcurrency(5)
-    .onTaskStarted(progress)
-    .onTaskFinished(progress)
+
+  // TODO (olku): generated log file should be displayed to user
+}
+
+export const reportErrors = async (errors: ChunkError[], context: JobContext) => {
+  if (errors.length === 0) return
+
+  const { source, destination } = context.job
+  log(`⛔ Translation failed for ${source} -> ${destination}`)
+
+  throw new Error(Errors.Failed, { cause: Exits.errors.code })
+}
+
+export const translate = async (content: string, context: JobContext): Promise<TranslateResult> => {
+  const { composePrompt, composeChunks, mergeResults } = selectStrategy(context.job.source)
+
+  const prompt = composePrompt(context)
+  const contentChunks = composeChunks({ content, context })
+
+  const pool = await withUI(context, PromisePool.for(contentChunks.chunks))
+    .withConcurrency(MAX_CONCURRENCY_CHUNKS)
     .useCorrespondingResults()
-    .process(async (chunk, _index) => askGPT(chunk, prompt))
+    .process(async (chunk) => {
+      return askGPTWithLogger(chunk, prompt, context)
+    })
 
-  const stats = {
-    content: entity.contentLength,
-    tokens: entity.totalTokens,
-    chunks: entity.chunks.length,
-    time: `${new Date().getTime() - startedAt.getTime()}ms`,
-    result: results.length,
-    failed: errors.map(({ message }) => message),
-  }
-  if (errors.length > 0) {
-    spinner.fail(`Failed ${src} with errored chunks: ${errors.length}`)
-
-    throw new Error(`Failed chunks: ${JSON.stringify(stats.failed)}`)
-  } else {
-    spinner.succeed(`Processed: ${src}, ${JSON.stringify(stats)}`)
-  }
+  const { results, errors } = pool
+  await reportErrors(errors, context)
 
   // if one of the sections failed, replace it with the original text
-  const translated = results
-    .map((f, index) => (f === PromisePool.failed ? entity.chunks[index] : f))
-    .join(MARKDOWN_SPLITTER)
+  const translated = mergeResults({ results, context })
 
-  dumpD('extracted: %O', translated)
-
-  return translated
+  return {
+    translated,
+    contentChunks,
+    translatedChunks: { chunks: results as string[], tokens: -1, length: translated.length },
+  }
 }
 
-export const translateFile = async (source: string, destination: string, language: string) => {
+export const translateFile = async (context: JobContext): Promise<TranslateFileResult> => {
+  const { source, destination } = context.job
   const content = await fs.readFile(source, 'utf-8')
-  const translated = await translate(source, content, language)
+  const { translated } = await translate(content, context)
 
   // Check if the translation is same as the original
   if (await isFileExists(destination)) {
     const fileContent = await fs.readFile(destination, 'utf-8')
 
-    if (fileContent === translated) throw new Error(ERROR_SAME_CONTENT)
+    if (fileContent === translated) throw new Error(Errors.SameContent)
   }
 
   await createFile(translated, destination)
 
-  return { source, destination, content, translated }
+  return { content, translated }
 }

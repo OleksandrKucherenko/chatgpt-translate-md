@@ -5,8 +5,12 @@ export interface TypedArguments extends Arguments {
   cwd: string
   source: string
   ignore: string
+  list: boolean
   overwrite: boolean
   language: string
+  sourceList: string
+  session: string
+  token: string
 }
 
 /** initial context, with parsed command line arguments. */

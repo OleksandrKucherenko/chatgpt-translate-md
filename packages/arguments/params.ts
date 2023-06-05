@@ -1,5 +1,6 @@
 import { type Commands, type Predefined, type Questions, Secured, SuggestDirs, type Switches } from './types'
 import { GlobalFlags, TranslateFlags } from './routes'
+import { v4 as uuid } from 'uuid'
 
 /** Values of the parameters extracted from global environment. */
 export const Defaults: Predefined = {
@@ -12,6 +13,8 @@ export const Defaults: Predefined = {
   overwrite: [false],
   debug: [false],
   cwd: [process.cwd()],
+  list: [false],
+  session: [uuid()],
 }
 
 /** User friendly questions. */
@@ -19,11 +22,17 @@ export const Prompts: Questions = {
   source: {
     message: `Source files, glob or file path (ex. ./**/*.md):`,
   },
+  list: {
+    message: `Is source contains a list files/globs:`,
+    type: `toggle`,
+    active: `yes`,
+    inactive: `no`,
+  },
   ignore: {
     message: `Ignore files (ex. ./**/*.ukrainian.md, /**):`,
   },
   overwrite: {
-    message: `Overwrite source files or compose with language extension?`,
+    message: `Overwrite source files?`,
     type: `toggle`,
     active: `yes`,
     inactive: `no`,
@@ -44,6 +53,11 @@ export const Options: Switches = {
   source: {
     alias: `s`,
     describe: `Source files glob`,
+  },
+  list: {
+    alias: [`l`, `source-list`],
+    describe: `Treat source as a list of files/globs`,
+    type: `boolean`,
   },
   ignore: {
     alias: `i`,
@@ -86,13 +100,22 @@ export const Yargs: Commands = {
   translate: {
     aliases: [`$0`],
     description: `Translate file(s) from one language to another over ChatGPT`,
-    options: [TranslateFlags.language, TranslateFlags.source, TranslateFlags.ignore, TranslateFlags.overwrite],
+    options: [
+      TranslateFlags.language,
+      TranslateFlags.source,
+      TranslateFlags.list,
+      TranslateFlags.ignore,
+      TranslateFlags.overwrite,
+    ],
     questions: [
       TranslateFlags.language,
       GlobalFlags.cwd,
       TranslateFlags.source,
+      TranslateFlags.list,
       TranslateFlags.ignore,
       TranslateFlags.overwrite,
     ],
   },
 }
+
+// TODO (olku): user should provide or source or

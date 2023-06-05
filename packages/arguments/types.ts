@@ -3,7 +3,7 @@
 import prompts, { type Choice } from 'prompts'
 import type yargs from 'yargs'
 import { type AllFlags, type Routes } from './routes'
-import { AUTOSUGGEST_CHOICES, autoSuggestDirectories } from './utils'
+import { AUTOSUGGESTION_CHOICES, autoSuggestDirectories } from './utils'
 
 type Simple = string | number | symbol
 
@@ -100,7 +100,7 @@ export class SuggestDirs implements Question {
 
   private constructor(props: Omit<Question, `type` | `choices` | `suggest`>) {
     this.type = `autocomplete`
-    this.choices = AUTOSUGGEST_CHOICES
+    this.choices = AUTOSUGGESTION_CHOICES
     this.suggest = autoSuggestDirectories
     Object.assign(this, props)
   }

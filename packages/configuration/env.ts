@@ -38,6 +38,8 @@ export const Exits = Object.freeze({
   unhandled: { name: `Unknown Error`, code: 2 },
   /** Gracefully shutdown. */
   termination: { name: `Terminated`, code: 3 },
+  /** Errors during processing. */
+  errors: { name: `Errors`, code: 4 },
 })
 
 export type ExitsType = typeof Exits.success
