@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { glob } from 'glob'
 import { PromisePool } from '@supercharge/promise-pool'
+import { v4 as uuid } from 'uuid'
 
 import { Dirs, dumpD, Exits, log } from '@this/configuration'
 import type { Context, RichContext, TypedArguments } from '@this/arguments'
@@ -9,6 +10,7 @@ import type { Context, RichContext, TypedArguments } from '@this/arguments'
 import { translateFile } from './gpt'
 import { createFile } from './utils'
 import { type Job, type JobError, Statistics, Kpi } from './types'
+import { onScreen } from './ui'
 
 type FindOptions = Pick<TypedArguments, `cwd` | `ignore` | `list`>
 type DestinationOptions = Pick<TypedArguments, `overwrite` | `language` | `cwd`>
@@ -58,6 +60,7 @@ export const suggestDestination = (source: string, language: string, overwrite: 
 /** Resolve source and destination paths to absolute for each file. */
 export const composeJobs = (files: string[], { cwd, language, overwrite }: DestinationOptions): Job[] => {
   return files.map((file: string) => ({
+    id: uuid(),
     source: path.resolve(cwd, file),
     destination: path.resolve(cwd, suggestDestination(file, language, overwrite)),
     language,
@@ -77,13 +80,23 @@ export const reportErrors = async (errors: JobError[], context: Context): Promis
 
   // dump errors to console
   errors
-    .map((e) => ({ file: e.item.source, message: e.message }))
+    .map((e) => ({ file: e.item.source, message: e.message, log: e.item.log }))
     .forEach((record) => {
       log(`errors: %O`, record)
     })
 
   throw new Error(`Translated has some errors. Check file ${reportFile} for details.`, {
     cause: Exits.errors.code,
+  })
+}
+
+/** Report all collected statistic */
+export const reportStats = async (from: bigint, context: RichContext): Promise<void> => {
+  const finals = context.stats.stats(from, process.hrtime.bigint(), Statistics)
+  log(`statistics: %O`, finals)
+
+  Object.keys(finals.statistics).forEach((key) => {
+    onScreen(`${key}: ${finals.statistics[key]}`)
   })
 }
 
@@ -112,7 +125,9 @@ export const execute = async (context: RichContext): Promise<void> => {
   // wait for all jobs to finish
   const { results, errors } = pool
   log(`translated files: %o, errors: %o`, results.length, errors.length)
-  log(`statistics: %O`, context.stats.stats(from, process.hrtime.bigint(), Statistics))
+
+  // report statistics
+  await reportStats(from, context)
 
   // it can throw the excpetion, keep it the last command in the chain
   await reportErrors(errors, context)

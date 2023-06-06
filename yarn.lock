@@ -3336,6 +3336,7 @@ __metadata:
     prettier: ^2.8.8
     rimraf: ^5.0.1
     ts-jest: ^29.1.0
+    ts-jest-mock-import-meta: ^1.0.0
     ts-node: ^10.9.1
     tslib: ^2.5.2
     typescript: ^5.0.4
@@ -6015,6 +6016,15 @@ __metadata:
   dependencies:
     is-number: ^7.0.0
   checksum: f76fa01b3d5be85db6a2a143e24df9f60dd047d151062d0ba3df62953f2f697b16fe5dad9b0ac6191c7efc7b1d9dcaa4b768174b7b29da89d4428e64bc0a20ed
+  languageName: node
+  linkType: hard
+
+"ts-jest-mock-import-meta@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "ts-jest-mock-import-meta@npm:1.0.0"
+  peerDependencies:
+    ts-jest: ">=20.0.0"
+  checksum: cde5b9c6cf5668bcb65e97cdaba4fe699f98f5d0d99bb7c9e247c7d60b0e788d87d9ab18b3c9c1612ca8fa84f2c7767e3be5ed425dd94c82f067936a231f9543
   languageName: node
   linkType: hard
 

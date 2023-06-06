@@ -1,15 +1,12 @@
 import Spinnies from 'spinnies'
+import chalk from 'chalk'
 import { type OnProgressCallback, type PromisePool, type PromisePoolError } from '@supercharge/promise-pool'
 import { type PromisePoolExecutor } from '@supercharge/promise-pool/dist/promise-pool-executor'
 
-import { dumpD } from '@this/configuration'
 import { type JobContext, type UiStrategy } from './types'
 
 const reportErrorsMessages = <T>(errors: Array<PromisePoolError<T>>): string => {
-  // TODO (olku): report errors messages to array
-  dumpD(`reportErrorsMessages %O`, errors)
-
-  return errors.map((error) => error.message).join(`, `)
+  return (errors ?? []).map((error) => error.message).join(`, `)
 }
 
 const spinnies = new Spinnies()
@@ -32,21 +29,26 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
 
     if (totalJobs === processed) {
       if (totalErrors > 0) {
-        spinnies.fail(source, { text: `Failed: ${source}, errors: ${reportErrorsMessages(executor.errors())}` })
+        spinnies.fail(source, {
+          text: `Failed: ${chalk.yellow(source)}, errors: ${reportErrorsMessages(executor.errors())}`,
+        })
       } else {
         spinnies.succeed(source, {
-          text: `Processed: ${source}, stats: ${JSON.stringify(context.stats)}`,
-          color: `white`,
+          text: `Processed: ${chalk.yellow(source)}`,
         })
       }
     } else {
       spinnies.update(source, {
-        text: `Translating: ${source}, pipe: ${active}|${processed}|${totalJobs}|${progress}%`,
+        text: `Translating: ${chalk.yellow(source)}, pipe: ${active}|${processed}|${totalJobs}|${progress}%`,
       })
     }
   }
 
   return pool.onTaskStarted(progress).onTaskFinished(progress)
+}
+
+export const onScreen = (line: string): void => {
+  console.log(line)
 }
 
 export const ConsoleUi: UiStrategy = {
@@ -62,3 +64,7 @@ export default ConsoleUi
 // - https://github.com/SamVerschueren/listr
 // - https://github.com/LaboratorioInternacionalWeb/Multispinners
 // - https://github.com/sindresorhus/cli-spinners
+//
+// Graphs:
+// - https://www.npmjs.com/package/asciichart
+// - https://www.npmjs.com/package/cli-graph

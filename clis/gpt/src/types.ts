@@ -47,6 +47,10 @@ export type Job = {
   source: string
   destination: string
   language: string
+  /** unique UUID of the job. */
+  id: string
+  /** Job log file path */
+  log?: string
 }
 
 export type JobError = PromisePoolError<Job, any>
