@@ -1,7 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "typeRoots": ["../../node_modules/@types", "./src/types"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "references": [
@@ -13,6 +14,9 @@
     },
     {
       "path": "../../packages/gc"
+    },
+    {
+      "path": "../../packages/telemetry"
     }
   ]
 }

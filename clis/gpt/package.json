@@ -19,11 +19,14 @@
     "@this/arguments": "*",
     "@this/configuration": "*",
     "@this/gc": "*",
+    "@this/telemetry": "*",
+    "@types/spinnies": "^0.5.0",
     "glob": "^10.2.6",
     "gpt-3-encoder": "^1.1.4",
     "handlebars": "^4.7.7",
     "openai": "^3.2.1",
-    "ora": "^6.3.1"
+    "ora": "^6.3.1",
+    "spinnies": "^0.5.1"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

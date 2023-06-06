@@ -11,10 +11,7 @@
     "outDir": "./build",
     "importHelpers": true,
     "allowSyntheticDefaultImports": true,
-    "lib": [
-      "ES2022",
-      "dom"
-    ],
+    "lib": ["ES2022", "dom"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "target": "ES2022",
@@ -32,35 +29,18 @@
     "skipLibCheck": true,
     "module": "ES2022",
     "moduleResolution": "node",
-    "types": [
-      "node",
-      "jest"
-    ],
+    "types": ["node", "jest"],
     "paths": {
-      "*": [
-        "node_modules/*",
-        "packages/*",
-        "services/*",
-        "websites/*",
-        "clis/*"
-      ]
+      "*": ["node_modules/*", "packages/*", "services/*", "websites/*", "clis/*"]
     }
   },
   "ts-node": {
     "esm": true,
+    "files": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": [
-    "clis/**/*",
-    "packages/**/*",
-    "services/**/*",
-    "websites/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ],
+  "include": ["clis/**/*", "packages/**/*", "services/**/*", "websites/**/*"],
+  "exclude": ["node_modules", "dist", "build"],
   "references": [
     {
       "path": "clis/gpt"
@@ -73,6 +53,9 @@
     },
     {
       "path": "packages/gc"
+    },
+    {
+      "path": "packages/telemetry"
     }
   ]
 }

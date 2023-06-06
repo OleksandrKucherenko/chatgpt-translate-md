@@ -1,21 +1,24 @@
-import ora from 'ora'
+import Spinnies from 'spinnies'
 import { type OnProgressCallback, type PromisePool, type PromisePoolError } from '@supercharge/promise-pool'
 import { type PromisePoolExecutor } from '@supercharge/promise-pool/dist/promise-pool-executor'
 
 import { dumpD } from '@this/configuration'
 import { type JobContext, type UiStrategy } from './types'
 
-const reportErrorsMessages = <T>(errors: Array<PromisePoolError<T>>): string[] => {
+const reportErrorsMessages = <T>(errors: Array<PromisePoolError<T>>): string => {
   // TODO (olku): report errors messages to array
   dumpD(`reportErrorsMessages %O`, errors)
 
-  return []
+  return errors.map((error) => error.message).join(`, `)
 }
+
+const spinnies = new Spinnies()
 
 export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePool<T> => {
   // const startedAt = new Date()
   const { source } = context.job
-  const spinner = ora(`Translating... ${source}`).start()
+  // const spinner = ora(`Translating... ${source}`).start()
+  spinnies.add(source, { text: `Translating: ${source}` })
 
   /** refresh the progress on any job start or finish. When detected that all jobs processed - finalize progress. */
   const progress: OnProgressCallback<T> = (_v, pool) => {
@@ -29,12 +32,17 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
 
     if (totalJobs === processed) {
       if (totalErrors > 0) {
-        spinner.fail(`Failed ${source} with errors: ${reportErrorsMessages(executor.errors())}`)
+        spinnies.fail(source, { text: `Failed: ${source}, errors: ${reportErrorsMessages(executor.errors())}` })
       } else {
-        spinner.succeed(`Processed: ${source}, stats: ${JSON.stringify(context.stats)}`)
+        spinnies.succeed(source, {
+          text: `Processed: ${source}, stats: ${JSON.stringify(context.stats)}`,
+          color: `white`,
+        })
       }
     } else {
-      spinner.text = `Translating: ${active}|${processed}|${progress}%`
+      spinnies.update(source, {
+        text: `Translating: ${source}, pipe: ${active}|${processed}|${totalJobs}|${progress}%`,
+      })
     }
   }
 

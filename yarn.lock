@@ -925,7 +925,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@this/arguments@workspace:packages/arguments"
   dependencies:
-    "@this/configuration": "workspace:^"
+    "@this/configuration": "*"
+    "@this/telemetry": "*"
     "@types/glob": ^8.1.0
     "@types/jest": ^29.5.1
     "@types/node": ^18.16.15
@@ -947,7 +948,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@this/configuration@*, @this/configuration@workspace:^, @this/configuration@workspace:packages/configuration":
+"@this/configuration@*, @this/configuration@workspace:packages/configuration":
   version: 0.0.0-use.local
   resolution: "@this/configuration@workspace:packages/configuration"
   dependencies:
@@ -979,6 +980,26 @@ __metadata:
     eventemitter3: ^5.0.1
     jest: ^29.5.0
     rimraf: ^5.0.1
+    ts-jest: ^29.1.0
+    ts-node: ^10.9.1
+    tslib: ^2.5.2
+    typescript: ^5.0.4
+  languageName: unknown
+  linkType: soft
+
+"@this/telemetry@*, @this/telemetry@workspace:packages/telemetry":
+  version: 0.0.0-use.local
+  resolution: "@this/telemetry@workspace:packages/telemetry"
+  dependencies:
+    "@this/configuration": "*"
+    "@types/jest": ^29.5.1
+    "@types/node": ^18.16.15
+    "@types/papaparse": ^5
+    "@types/stats-lite": ^2
+    jest: ^29.5.0
+    papaparse: ^5.4.1
+    rimraf: ^5.0.1
+    stats-lite: ^2.2.0
     ts-jest: ^29.1.0
     ts-node: ^10.9.1
     tslib: ^2.5.2
@@ -1198,6 +1219,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/papaparse@npm:^5":
+  version: 5.3.7
+  resolution: "@types/papaparse@npm:5.3.7"
+  dependencies:
+    "@types/node": "*"
+  checksum: 5ffa6fc81c0f41cd18c9c015599b3690f2a19ee553dec85e92c17bd1ef4a045e0ba4973d8bd49aed9f83fcba3b0ec280ebbe0a0def66701c0b4860c691444694
+  languageName: node
+  linkType: hard
+
 "@types/prettier@npm:^2.1.5, @types/prettier@npm:^2.7.2":
   version: 2.7.2
   resolution: "@types/prettier@npm:2.7.2"
@@ -1222,10 +1252,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/spinnies@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@types/spinnies@npm:0.5.0"
+  checksum: 165cd9fce48b09f0a77923b86d46e1026cbbf9e02945e79337d9f751a7e6fad14f1f4b0fa7c2e4a38fb8293587a8caeef7a8a6e373837dea3feef986163282f1
+  languageName: node
+  linkType: hard
+
 "@types/stack-utils@npm:^2.0.0":
   version: 2.0.1
   resolution: "@types/stack-utils@npm:2.0.1"
   checksum: 205fdbe3326b7046d7eaf5e494d8084f2659086a266f3f9cf00bccc549c8e36e407f88168ad4383c8b07099957ad669f75f2532ed4bc70be2b037330f7bae019
+  languageName: node
+  linkType: hard
+
+"@types/stats-lite@npm:^2":
+  version: 2.2.0
+  resolution: "@types/stats-lite@npm:2.2.0"
+  checksum: 816b8ce8c6af7b5bd35359c8428f5667e9761742a60ef1b73fb86776925e10ac29e7621002f5c7e1c7183acfccd3420400b882ee6b8ab8d4067d06919286d990
   languageName: node
   linkType: hard
 
@@ -1453,6 +1497,13 @@ __metadata:
   dependencies:
     type-fest: ^0.21.3
   checksum: 93111c42189c0a6bed9cdb4d7f2829548e943827ee8479c74d6e0b22ee127b2a21d3f8b5ca57723b8ef78ce011fbfc2784350eb2bde3ccfccf2f575fa8489815
+  languageName: node
+  linkType: hard
+
+"ansi-regex@npm:^4.1.0":
+  version: 4.1.1
+  resolution: "ansi-regex@npm:4.1.1"
+  checksum: b1a6ee44cb6ecdabaa770b2ed500542714d4395d71c7e5c25baa631f680fb2ad322eb9ba697548d498a6fd366949fc8b5bfcf48d49a32803611f648005b01888
   languageName: node
   linkType: hard
 
@@ -1894,7 +1945,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^2.0.0":
+"chalk@npm:^2.0.0, chalk@npm:^2.4.2":
   version: 2.4.2
   resolution: "chalk@npm:2.4.2"
   dependencies:
@@ -1950,7 +2001,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cli-cursor@npm:^3.1.0":
+"cli-cursor@npm:^3.0.0, cli-cursor@npm:^3.1.0":
   version: 3.1.0
   resolution: "cli-cursor@npm:3.1.0"
   dependencies:
@@ -1976,9 +2027,11 @@ __metadata:
     "@this/arguments": "*"
     "@this/configuration": "*"
     "@this/gc": "*"
+    "@this/telemetry": "*"
     "@types/glob": ^8.1.0
     "@types/jest": ^29.5.1
     "@types/node": 18.16.15
+    "@types/spinnies": ^0.5.0
     glob: ^10.2.6
     gpt-3-encoder: ^1.1.4
     handlebars: ^4.7.7
@@ -1987,6 +2040,7 @@ __metadata:
     openai: ^3.2.1
     ora: ^6.3.1
     rimraf: ^5.0.1
+    spinnies: ^0.5.1
     ts-jest: ^29.1.0
     ts-node: ^10.9.1
     tsconfig-paths: ^4.2.0
@@ -3798,6 +3852,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isnumber@npm:~1.0.0":
+  version: 1.0.0
+  resolution: "isnumber@npm:1.0.0"
+  checksum: 245dba1670bc5b0e0e0788ca0231f05eaa2425586b22d5acc44add14ac8f025b12e1a346b3a069e0c194cd93c0c2bfe55820dba5582500a3f45f4212a667b7f3
+  languageName: node
+  linkType: hard
+
 "istanbul-lib-coverage@npm:^3.0.0, istanbul-lib-coverage@npm:^3.2.0":
   version: 3.2.0
   resolution: "istanbul-lib-coverage@npm:3.2.0"
@@ -5087,6 +5148,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"papaparse@npm:^5.4.1":
+  version: 5.4.1
+  resolution: "papaparse@npm:5.4.1"
+  checksum: fc9e52f7158dca3517c229e3309065b1ab5da6c7194572fba4f31ff138bc43e3c91182cc40365cc828f97fe10d0aca416068fd731661058bea0f69ddb84a411a
+  languageName: node
+  linkType: hard
+
 "parent-module@npm:^1.0.0":
   version: 1.0.1
   resolution: "parent-module@npm:1.0.1"
@@ -5657,6 +5725,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"spinnies@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "spinnies@npm:0.5.1"
+  dependencies:
+    chalk: ^2.4.2
+    cli-cursor: ^3.0.0
+    strip-ansi: ^5.2.0
+  checksum: 7407c8cae31ff5868e56cfa12898e5a2db6f42b278c098637e28939d53ed6c7b0726027796c8e12bc6705f7dd5ec405d467c7cacf989d0beefca14c69440be77
+  languageName: node
+  linkType: hard
+
 "sprintf-js@npm:~1.0.2":
   version: 1.0.3
   resolution: "sprintf-js@npm:1.0.3"
@@ -5679,6 +5758,15 @@ __metadata:
   dependencies:
     escape-string-regexp: ^2.0.0
   checksum: 052bf4d25bbf5f78e06c1d5e67de2e088b06871fa04107ca8d3f0e9d9263326e2942c8bedee3545795fc77d787d443a538345eef74db2f8e35db3558c6f91ff7
+  languageName: node
+  linkType: hard
+
+"stats-lite@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "stats-lite@npm:2.2.0"
+  dependencies:
+    isnumber: ~1.0.0
+  checksum: ea153c195c48692b00bfbb04fd8760d30c161edf62be31dc3475554da1f22f362461fa953ca5465c6e7977a1b927bf8cb4b1df8230c43f6a8f48fe2c125c98eb
   languageName: node
   linkType: hard
 
@@ -5778,6 +5866,15 @@ __metadata:
   dependencies:
     ansi-regex: ^5.0.1
   checksum: f3cd25890aef3ba6e1a74e20896c21a46f482e93df4a06567cebf2b57edabb15133f1f94e57434e0a958d61186087b1008e89c94875d019910a213181a14fc8c
+  languageName: node
+  linkType: hard
+
+"strip-ansi@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "strip-ansi@npm:5.2.0"
+  dependencies:
+    ansi-regex: ^4.1.0
+  checksum: bdb5f76ade97062bd88e7723aa019adbfacdcba42223b19ccb528ffb9fb0b89a5be442c663c4a3fb25268eaa3f6ea19c7c3fbae830bd1562d55adccae1fcec46
   languageName: node
   linkType: hard
 

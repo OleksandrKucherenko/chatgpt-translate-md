@@ -4,11 +4,11 @@ import { glob } from 'glob'
 import { PromisePool } from '@supercharge/promise-pool'
 
 import { Dirs, dumpD, Exits, log } from '@this/configuration'
-import type { Context, TypedArguments } from '@this/arguments'
+import type { Context, RichContext, TypedArguments } from '@this/arguments'
 
 import { translateFile } from './gpt'
 import { createFile } from './utils'
-import { type Job, type JobError } from './types'
+import { type Job, type JobError, Statistics, Kpi } from './types'
 
 type FindOptions = Pick<TypedArguments, `cwd` | `ignore` | `list`>
 type DestinationOptions = Pick<TypedArguments, `overwrite` | `language` | `cwd`>
@@ -88,14 +88,19 @@ export const reportErrors = async (errors: JobError[], context: Context): Promis
 }
 
 /** Translate all files based on the provided context. */
-export const execute = async (context: Context): Promise<void> => {
+export const execute = async (context: RichContext): Promise<void> => {
   const { source } = context.flags
+  const from = process.hrtime.bigint()
 
   // extract all files based on context CWD and search glob
   const files: string[] = await findFilesByGlob(source, context.flags)
+  context.stats.value(Kpi.files, files.length) // processing decrement this value
 
   // suggest output file naming strategy, resolve to absolute path's
   const forProcessing = composeJobs(files, context.flags)
+
+  // show some hints to user
+  log(`stats of the pipe: active|processed|total|progress, example: %s`, `5|10|100|10.0%`)
 
   // do processing of files one by one
   const pool = await PromisePool.for(forProcessing)
@@ -107,5 +112,8 @@ export const execute = async (context: Context): Promise<void> => {
   // wait for all jobs to finish
   const { results, errors } = pool
   log(`translated files: %o, errors: %o`, results.length, errors.length)
+  log(`statistics: %O`, context.stats.stats(from, process.hrtime.bigint(), Statistics))
+
+  // it can throw the excpetion, keep it the last command in the chain
   await reportErrors(errors, context)
 }

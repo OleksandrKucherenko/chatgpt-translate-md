@@ -2,7 +2,7 @@ import * as path from 'node:path'
 import * as fs from 'node:fs'
 import { fileURLToPath } from 'url'
 
-// TODO: add constants that control local disk paths
+// TODO (olku): add constants that control local disk paths
 const FILE_NAME = fileURLToPath(import.meta.url)
 // const FILE_NAME = __filename
 
