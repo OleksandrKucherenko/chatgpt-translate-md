@@ -1,5 +1,6 @@
 import { describe, expect, test } from '@jest/globals'
-import { metrics, type Schema } from './telemetry'
+import { metrics } from './telemetry'
+import { type Schema } from './types'
 
 enum Kpi {
   /** reported by API usage of tokens */
