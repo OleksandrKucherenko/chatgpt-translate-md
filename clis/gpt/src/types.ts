@@ -25,16 +25,16 @@ export enum Kpi {
 }
 
 export const Statistics: Schema<Kpi> = {
-  'per:minute:used:tokens': { description: 'Number of Used Tokens per Minute', operation: `histogram` },
-  'per:minute:operations': { description: 'Number of Operations per Minute', operation: `histogram` },
-  'total:used:tokens': { description: 'Total Number of Used Tokens', operation: `counter` },
-  'total:processed:files': { description: 'Number of Processed Files', operation: `counter` },
-  'total:api:calls': { description: 'Number of API Calls', operation: `counter` },
-  'histogram:api:response:time': { description: 'Distribution of API Response Time', operation: `histogram` },
-  'total:api:errors': { description: 'Number of API Errors', operation: `counter` },
-  'histogram:api:errors': { description: 'Distribution of API Errors', operation: `histogram` },
-  'total:content:bytes:read': { description: 'Number of Content Bytes Read', operation: `counter` },
-  'total:content:bytes:written': { description: 'Number of Content Bytes Written', operation: `counter` },
+  'per:minute:used:tokens': { description: `Number of Used Tokens per Minute`, operation: `range` },
+  'per:minute:operations': { description: `Number of Operations per Minute`, operation: `range` },
+  'total:used:tokens': { description: `Total Number of Used Tokens`, operation: `sum` },
+  'total:processed:files': { description: `Number of Processed Files`, operation: `counter` },
+  'total:api:calls': { description: `Number of API Calls`, operation: `counter` },
+  'histogram:api:response:time': { description: `Distribution of API Response Time`, operation: `histogram` },
+  'total:api:errors': { description: `Number of API Errors`, operation: `counter` },
+  'histogram:api:errors': { description: `Distribution of API Errors`, operation: `frequiency` },
+  'total:content:bytes:read': { description: `Number of Content Bytes Read`, operation: `sum` },
+  'total:content:bytes:written': { description: `Number of Content Bytes Written`, operation: `sum` },
 }
 
 export type Content = {

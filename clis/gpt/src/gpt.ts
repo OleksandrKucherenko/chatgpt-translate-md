@@ -1,7 +1,6 @@
 import * as gpt from 'openai'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { v4 as uuid } from 'uuid'
 import { PromisePool } from '@supercharge/promise-pool'
 import axios from 'axios'
 import createError from 'axios/lib/core/createError'

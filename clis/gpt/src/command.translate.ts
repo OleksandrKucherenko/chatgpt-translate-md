@@ -92,7 +92,7 @@ export const reportErrors = async (errors: JobError[], context: Context): Promis
 
 /** Report all collected statistic */
 export const reportStats = async (from: bigint, context: RichContext): Promise<void> => {
-  const finals = context.stats.stats(from, process.hrtime.bigint(), Statistics)
+  const finals = await context.stats.stats(from, process.hrtime.bigint(), Statistics)
   log(`statistics: %O`, finals)
 
   Object.keys(finals.statistics).forEach((key) => {
