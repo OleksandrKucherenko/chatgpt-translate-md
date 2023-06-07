@@ -1,11 +1,12 @@
 import path from 'node:path'
 import chalk from 'chalk'
+
 import { emitter, Events } from '@this/gc'
 import { type Context, type RichContext, processArguments, Routes, mask } from '@this/arguments'
 import { Dirs, dumpD, Exits, log } from '@this/configuration'
+import { metrics } from '@this/telemetry'
 import { execute as executeTranslate } from './command.translate'
 import { createFile } from './utils'
-import { metrics } from '@this/telemetry'
 
 export const initialize = async (args: string[]): Promise<void> => {
   const context: Context = await processArguments(args)
@@ -15,8 +16,12 @@ export const initialize = async (args: string[]): Promise<void> => {
   const enhanced: RichContext = { ...context, stats: metrics(context.flags.session) }
 
   // create session log, save execution command
-  const logFile = path.resolve(Dirs.local, context.flags.session, 'exec.log')
-  const logContent = `Command:\n\n${args.join(' \\\n\t')}\n\nParsed Arguments:\n\n${JSON.stringify(mask(context.flags), null, 2)}\n\n`
+  const logFile = path.resolve(Dirs.local, context.flags.session, `exec.log`)
+  const logContent = `Command:\n\n${args.join(` \\\n\t`)}\n\nParsed Arguments:\n\n${JSON.stringify(
+    mask(context.flags),
+    null,
+    2
+  )}\n\n`
   await createFile(logContent, logFile)
   log(`Execution log saved to: %s`, chalk.yellowBright(logFile))
 
@@ -27,10 +32,13 @@ export const initialize = async (args: string[]): Promise<void> => {
 export const main = async (context: RichContext): Promise<void> => {
   dumpD(`main context: %O`, mask(context))
 
+  // execute selected command
   switch (context.flags.command) {
     case Routes.translate:
       await executeTranslate(context)
       break
+
+    // TODO (olku): implement other commands
 
     default:
       throw new Error(`Unknown command: ${context.flags.command}`)

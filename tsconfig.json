@@ -39,7 +39,7 @@
     "files": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": ["clis/**/*", "packages/**/*", "services/**/*", "websites/**/*"],
+  "include": ["clis/**/*.ts", "packages/**/*.ts", "services/**/*.ts", "websites/**/*.ts"],
   "exclude": ["node_modules", "dist", "build"],
   "references": [
     {

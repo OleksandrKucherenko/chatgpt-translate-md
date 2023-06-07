@@ -179,7 +179,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
   })
   dumpD(`to confirm %O`, toConfirm)
 
-  if (interactive === false) {
+  if (!interactive) {
     reportDefaultResolutions(context, toConfirm)
     return context
   }

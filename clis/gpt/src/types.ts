@@ -37,13 +37,13 @@ export const Statistics: Schema<Kpi> = {
   'total:content:bytes:written': { description: `Number of Content Bytes Written`, operation: `sum` },
 }
 
-export type Content = {
+export interface Content {
   chunks: string[]
   tokens: number
   length: number
 }
 
-export type Job = {
+export interface Job {
   source: string
   destination: string
   language: string
@@ -61,13 +61,13 @@ export type JobContext = RichContext & {
   readonly job: Job
 }
 
-export type JobContent = {
+export interface JobContent {
   content: string
   context: JobContext
 }
 
-export type JobResults = {
-  results: (string | symbol)[]
+export interface JobResults {
+  results: Array<string | symbol>
   context: JobContext
 }
 
@@ -76,9 +76,9 @@ export interface DocumentStrategy {
   readonly description: string
   readonly extension: string
 
-  composePrompt(context: JobContext): string
-  composeChunks(content: JobContent): Content
-  mergeResults(done: JobResults): string
+  composePrompt: (context: JobContext) => string
+  composeChunks: (content: JobContent) => Content
+  mergeResults: (done: JobResults) => string
 }
 
 export interface UiStrategy {

@@ -2,23 +2,22 @@ import * as gpt from 'openai'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { PromisePool } from '@supercharge/promise-pool'
-import axios from 'axios'
-import createError from 'axios/lib/core/createError'
+import axios, { AxiosError, type AxiosResponse } from 'axios'
 
 import { Dirs, Exits } from '@this/configuration'
 
 import { appendFile, createFile, isFileExists } from './utils'
-import { ChunkError, Content, Kpi, type DocumentStrategy, type JobContext } from './types'
+import { type ChunkError, type Content, Kpi, type DocumentStrategy, type JobContext } from './types'
 import { Markdown } from './markdown'
-import { onScreen, withUI } from './ui'
+import { onFail, withUI } from './ui'
 
 /** How many chunks process at the same time. */
 export const MAX_CONCURRENCY_CHUNKS = 5
 
 /** Exception messages (for i18n). */
 enum Errors {
-  SameContent = '⛔ The result of translation was same as the existed output file.',
-  EmptyContent = '⛔ The result of translation was empty.',
+  SameContent = `⛔ The result of translation was same as the existed output file.`,
+  EmptyContent = `⛔ The result of translation was empty.`,
   Unsupported = `⛔ Unsupported file type.`,
   ApiError = `⛔ API error.`,
   Failed = `⛔ Translation failed.`,
@@ -41,12 +40,19 @@ enum Errors {
 //   ],
 // }
 
-const MODEL = 'gpt-3.5-turbo'
+const MODEL = `gpt-3.5-turbo`
 const MSG_SYSTEM_PROMPT = { role: gpt.ChatCompletionRequestMessageRoleEnum.System }
 const MSG_USER_CONTENT = { role: gpt.ChatCompletionRequestMessageRoleEnum.User }
 
-type TranslateResult = { translated: string; contentChunks: Content; translatedChunks: Content }
-type TranslateFileResult = { content: string; translated: string }
+interface TranslateResult {
+  translated: string
+  contentChunks: Content
+  translatedChunks: Content
+}
+interface TranslateFileResult {
+  content: string
+  translated: string
+}
 
 /** Select document processing strategy. */
 export const selectStrategy = (file: string): DocumentStrategy => {
@@ -56,7 +62,7 @@ export const selectStrategy = (file: string): DocumentStrategy => {
 }
 
 /** Create ChatGPT client with small configuration changes. */
-export const createGptClient = (apiKey: string) => {
+export const createGptClient = (apiKey: string): gpt.OpenAIApi => {
   const configuration = new gpt.Configuration({ apiKey })
 
   // do not raise exception on non-2xx responses
@@ -66,13 +72,14 @@ export const createGptClient = (apiKey: string) => {
 }
 
 /** stolen from: axios/lib/core/settle.js:17:12 */
-const createAxiosError = (response: any) => createError(
-  'Request failed with status code ' + response.status,
-  response.config,
-  null,
-  response.request,
-  response
-)
+const createAxiosError = (response: AxiosResponse): AxiosError =>
+  new AxiosError(
+    `Request failed with status code ${response.status}`,
+    [AxiosError.ERR_BAD_REQUEST, AxiosError.ERR_BAD_RESPONSE][Math.floor(response.status / 100) - 4],
+    response.config,
+    response.request,
+    response
+  )
 
 /** Ask openai to do the magic */
 export const askGPT = async (text: string, prompt: string, context: JobContext): Promise<string> => {
@@ -94,8 +101,9 @@ export const askGPT = async (text: string, prompt: string, context: JobContext):
   context.stats.value(Kpi.codes, response.status)
 
   const {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     usage: { total_tokens = 0 } = { total_tokens: 0 },
-    choices: [{ message: { content } = { content: '' } }],
+    choices: [{ message: { content } = { content: `` } }],
   } = response.data
 
   // extract statistics from response
@@ -104,8 +112,9 @@ export const askGPT = async (text: string, prompt: string, context: JobContext):
   context.stats.increment(Kpi.usedTokens, total_tokens)
 
   // raise errors on non-2xx responses or empty content
-  if(!(response.status >= 200 && response.status < 300)) throw new Error(Errors.ApiError, { cause: createAxiosError(response) } )
-  if (content === '') throw new Error(Errors.EmptyContent)
+  if (!(response.status >= 200 && response.status < 300))
+    throw new Error(Errors.ApiError, { cause: createAxiosError(response) })
+  if (content === ``) throw new Error(Errors.EmptyContent)
 
   return content
 }
@@ -139,11 +148,11 @@ export const askGPTWithLogger = async (text: string, prompt: string, context: Jo
 }
 
 /** Report translation failure. */
-export const reportErrors = async (errors: ChunkError[], context: JobContext) => {
+export const reportErrors = async (errors: ChunkError[], context: JobContext): Promise<void> => {
   if (errors.length === 0) return
 
   const { source, destination } = context.job
-  onScreen(`⛔ Translation failed for ${source} -> ${destination}, log: ${context.job.log}`)
+  onFail(`⛔ Translation failed for ${source} -> ${destination}, log: ${context.job.log}`)
 
   throw new Error(Errors.Failed, { cause: Exits.errors.code })
 }
@@ -160,7 +169,7 @@ export const translate = async (content: string, context: JobContext): Promise<T
     .withConcurrency(MAX_CONCURRENCY_CHUNKS)
     .useCorrespondingResults()
     .process(async (chunk) => {
-      return askGPTWithLogger(chunk, prompt, context)
+      return await askGPTWithLogger(chunk, prompt, context)
     })
 
   const { results, errors } = pool
@@ -180,17 +189,18 @@ export const translate = async (content: string, context: JobContext): Promise<T
 /** Translate one file. */
 export const translateFile = async (context: JobContext): Promise<TranslateFileResult> => {
   const { source, destination } = context.job
-  const content = await fs.readFile(source, 'utf-8')
+  const content = await fs.readFile(source, `utf-8`)
   context.stats.increment(Kpi.read, content.length)
   const { translated } = await translate(content, context)
 
   // Check if the translation is same as the original
   if (await isFileExists(destination)) {
-    const fileContent = await fs.readFile(destination, 'utf-8')
+    const fileContent = await fs.readFile(destination, `utf-8`)
 
     if (fileContent === translated) throw new Error(Errors.SameContent)
   }
 
+  // write translated content to destination file
   await createFile(translated, destination)
   context.stats.increment(Kpi.write, translated.length)
 

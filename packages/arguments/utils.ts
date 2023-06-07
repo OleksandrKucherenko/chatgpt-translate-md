@@ -20,7 +20,7 @@ export const AUTOSUGGESTION_CHOICES = [
 
 const cwd = process.cwd()
 
-const isDirectory = (file: string) => {
+const isDirectory = (file: string): boolean => {
   // security permission error is possible for some directories
   try {
     return fs.lstatSync(file).isDirectory()
@@ -29,19 +29,26 @@ const isDirectory = (file: string) => {
   }
 }
 
-export const autoSuggestDirectories = async (input: string, choices: Choice[]) => {
+const isAllEmpty = <T>(arr1?: T[], arr2?: T[]): boolean => {
+  return (arr1 ?? []).length === 0 && (arr2 ?? []).length === 0
+}
+
+export const autoSuggestDirectories = async (
+  input: string,
+  choices: Choice[]
+): Promise<Array<{ title: string; value: string }>> => {
   const provided = choices.find(({ title }) => title === FROM_ARGS)?.value ?? cwd
-  const start = (input.length === 0 ? provided : input).replace('~', process.env.HOME ?? '~')
+  const start = (input.length === 0 ? provided : input).replace(`~`, process.env.HOME ?? `~`)
   const files = await glob(`${start}*`, { cwd, maxDepth: 1 })
   const hiddenFiles = await glob(`${start}.??*`, { cwd, maxDepth: 1 })
   const value = files?.[0] ?? start
 
   // provide only the unique list of suggestions, sorted alphabetically
-  const merged = [...files, ...hiddenFiles, !files && !hiddenFiles ? value : null].filter(Boolean) as string[]
+  const merged = [...files, ...hiddenFiles, isAllEmpty(files, hiddenFiles) ? value : null].filter(Boolean) as string[]
   const suggestions = [...new Set(merged)].sort((a, b) => a.localeCompare(b))
 
   return suggestions
-    .filter((f) => f !== '.' && f !== '..')
+    .filter((f) => f !== `.` && f !== `..`)
     .filter((f) => isDirectory(f))
     .map((f) => ({ title: f, value: f }))
     .slice(0, 10)

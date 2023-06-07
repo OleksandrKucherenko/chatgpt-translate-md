@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import utils from 'node:util'
 import { glob } from 'glob'
 import { PromisePool } from '@supercharge/promise-pool'
 import { v4 as uuid } from 'uuid'
@@ -96,7 +97,8 @@ export const reportStats = async (from: bigint, context: RichContext): Promise<v
   log(`statistics: %O`, finals)
 
   Object.keys(finals.statistics).forEach((key) => {
-    onScreen(`${key}: ${finals.statistics[key]}`)
+    const dump = utils.inspect(finals.statistics[key], { depth: 3 })
+    onScreen(`${key}: ${dump}`)
   })
 }
 
@@ -119,7 +121,7 @@ export const execute = async (context: RichContext): Promise<void> => {
   const pool = await PromisePool.for(forProcessing)
     .withConcurrency(MAX_CONCURRENCY_FILES)
     .process(async (job) => {
-      return translateFile({ ...context, job })
+      return await translateFile({ ...context, job })
     })
 
   // wait for all jobs to finish

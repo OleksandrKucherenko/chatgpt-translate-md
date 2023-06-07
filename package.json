@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@goldstack/utils-typescript-references": "^0.3.7",
+    "@jest/globals": "^29.5.0",
     "@tsconfig/node18": "^2.0.1",
     "@types/eslint": "^8.40.0",
     "@types/node": "^18.16.15",

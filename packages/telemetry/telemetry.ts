@@ -55,7 +55,9 @@ export const metrics = (session: string): Telemetry => {
         const readableStream = fs.createReadStream(telemetryFile)
         Papa.parse<TimeRecord>(readableStream, {
           header: true,
-          complete: (results, _file) => resolve(results.data),
+          complete: (results, _file) => {
+            resolve(results.data)
+          },
         })
       })
 

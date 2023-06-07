@@ -1,4 +1,3 @@
-
 /** Name of our tool. */
 export const ApplicationName = `cli-gpt`
 

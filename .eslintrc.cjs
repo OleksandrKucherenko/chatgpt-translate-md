@@ -12,7 +12,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
     // https://typescript-eslint.io/linting/typed-linting/monorepos/
-    project: ['./packages/*/tsconfig.json', './clis/*/tsconfig.json', './tsconfig.json'],
+    project: ['./packages/*/tsconfig*.json', './clis/*/tsconfig*.json', './tsconfig*.json'],
   },
   ignorePatterns: [
     'node_modules',
@@ -26,6 +26,8 @@ module.exports = {
     '.yarn',
     '.cache',
     '.pnp.*',
+    '.eslintrc.cjs',
+    'jest.config.js',
   ],
   rules: {
     'prettier/prettier': 'error',
@@ -35,6 +37,6 @@ module.exports = {
     /* unused variables is not an issue, only warning */
     '@typescript-eslint/no-unused-vars': 'warn',
     /* allow any in template strings */
-    '@typescript-eslint/restrict-template-expressions': 'warn',
+    '@typescript-eslint/restrict-template-expressions': ['warn', { allowAny: true, allowNever: true }],
   },
 }

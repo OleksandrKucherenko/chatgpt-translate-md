@@ -1,6 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
-import prompts, { type Choice } from 'prompts'
+import type prompts from 'prompts'
+import { type Choice } from 'prompts'
 import type yargs from 'yargs'
 import { type AllFlags, type Routes } from './routes'
 import { AUTOSUGGESTION_CHOICES, autoSuggestDirectories } from './utils'

@@ -5,16 +5,21 @@ import { type PromisePoolExecutor } from '@supercharge/promise-pool/dist/promise
 
 import { type JobContext, type UiStrategy } from './types'
 
-const reportErrorsMessages = <T>(errors: Array<PromisePoolError<T>>): string => {
-  return (errors ?? []).map((error) => error.message).join(`, `)
+const reportErrorsMessages = <T>(errors?: Array<PromisePoolError<T>>): string => {
+  console.log(`errors: `, JSON.stringify(errors, null, 2))
+
+  return (errors ?? [])
+    .map((error) => {
+      const stackFirstLine = error.stack?.split(`\n`)[0] ?? ``
+      return `${error.message} / ${stackFirstLine}`
+    })
+    .join(`, `)
 }
 
 const spinnies = new Spinnies()
 
 export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePool<T> => {
-  // const startedAt = new Date()
   const { source } = context.job
-  // const spinner = ora(`Translating... ${source}`).start()
   spinnies.add(source, { text: `Translating: ${source}` })
 
   /** refresh the progress on any job start or finish. When detected that all jobs processed - finalize progress. */
@@ -23,7 +28,6 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
     const active = pool.activeTasksCount()
     const processed = pool.processedCount()
     const progress = pool.processedPercentage().toFixed(1)
-    // const time = `${new Date().getTime() - startedAt.getTime()}ms`
     const totalJobs = executor.items().length
     const totalErrors = executor.errors().length
 
@@ -49,6 +53,18 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
 
 export const onScreen = (line: string): void => {
   console.log(line)
+}
+
+export const onSuccess = (line: string): void => {
+  spinnies.add(`success`, { text: line })
+  spinnies.succeed(`success`, { text: line })
+  spinnies.remove(`success`)
+}
+
+export const onFail = (line: string): void => {
+  spinnies.add(`fail`, { text: line })
+  spinnies.fail(`fail`, { text: line })
+  spinnies.remove(`fail`)
 }
 
 export const ConsoleUi: UiStrategy = {
