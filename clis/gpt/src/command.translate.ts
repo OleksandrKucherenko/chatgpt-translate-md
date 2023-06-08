@@ -10,11 +10,11 @@ import type { Context, RichContext, TypedArguments } from '@this/arguments'
 
 import { translateFile } from './gpt'
 import { createFile } from './utils'
-import { type Job, type JobError, Statistics, Kpi } from './types'
-import { onScreen } from './ui'
+import { type Job, type JobError, Statistics } from './types'
+import { onScreen, onSuccess } from './ui'
 
 type FindOptions = Pick<TypedArguments, `cwd` | `ignore` | `list`>
-type DestinationOptions = Pick<TypedArguments, `overwrite` | `language` | `cwd`>
+type DestinationOptions = Pick<TypedArguments, `overwrite` | `language` | `cwd` | `session`>
 
 /** How many files process at the same time. */
 export const MAX_CONCURRENCY_FILES = 5
@@ -109,20 +109,17 @@ export const execute = async (context: RichContext): Promise<void> => {
 
   // extract all files based on context CWD and search glob
   const files: string[] = await findFilesByGlob(source, context.flags)
-  context.stats.value(Kpi.files, files.length) // processing decrement this value
 
   // suggest output file naming strategy, resolve to absolute path's
   const forProcessing = composeJobs(files, context.flags)
 
   // show some hints to user
-  log(`stats of the pipe: active|processed|total|progress, example: %s`, `5|10|100|10.0%`)
+  onSuccess(`stats of the pipe: active|processed|total|progress, example: 5|10|100|10.0%`)
 
   // do processing of files one by one
   const pool = await PromisePool.for(forProcessing)
     .withConcurrency(MAX_CONCURRENCY_FILES)
-    .process(async (job) => {
-      return await translateFile({ ...context, job })
-    })
+    .process(async (job) => await translateFile({ ...context, job }))
 
   // wait for all jobs to finish
   const { results, errors } = pool
@@ -131,6 +128,6 @@ export const execute = async (context: RichContext): Promise<void> => {
   // report statistics
   await reportStats(from, context)
 
-  // it can throw the excpetion, keep it the last command in the chain
+  // it can throw the exception, keep it the last command in the chain
   await reportErrors(errors, context)
 }

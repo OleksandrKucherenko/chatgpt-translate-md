@@ -5,12 +5,13 @@ import { type Schema } from '@this/telemetry'
 export enum Kpi {
   /** reported by API usage of tokens */
   usedTokens = `per:minute:used:tokens`, // increment
-  /** number of starte operations */
+  /** number of started operations */
   operations = `per:minute:operations`, // value
   /** this more like estimated token usage, only after API call we will know the real usage. */
   tokens = `total:used:tokens`, // increment
-  files = `total:processed:files`, // set value, with decrement
-  /** Also correspond the total amound of chunks. */
+  /** number of processed files */
+  files = `total:processed:files`, // increment
+  /** Also correspond the total amount of chunks. */
   calls = `total:api:calls`, // increment
   /** api response duration */
   responseAt = `histogram:api:response:time`, // duration 'start'|'end'
@@ -32,7 +33,7 @@ export const Statistics: Schema<Kpi> = {
   'total:api:calls': { description: `Number of API Calls`, operation: `counter` },
   'histogram:api:response:time': { description: `Distribution of API Response Time`, operation: `histogram` },
   'total:api:errors': { description: `Number of API Errors`, operation: `counter` },
-  'histogram:api:errors': { description: `Distribution of API Errors`, operation: `frequiency` },
+  'histogram:api:errors': { description: `Distribution of API Errors`, operation: `frequency` },
   'total:content:bytes:read': { description: `Number of Content Bytes Read`, operation: `sum` },
   'total:content:bytes:written': { description: `Number of Content Bytes Written`, operation: `sum` },
 }

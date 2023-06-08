@@ -9,9 +9,9 @@ export const polarity = (item: TimeRecord): object | number | string =>
 
 type StatFunc = (numbers: number[], items: TRecord[]) => any
 type CompareFn = (a: number, b: number) => number
-const ClassisNums: CompareFn = (a, b) => a - b
+const CompareNumbers: CompareFn = (a, b) => a - b
 
-export const binarySearch = (arr: number[], el: number, compareFn: CompareFn = ClassisNums): number => {
+export const binarySearch = (arr: number[], el: number, compareFn: CompareFn = CompareNumbers): number => {
   let m = 0
   let n = arr.length - 1
   while (m <= n) {
@@ -26,6 +26,39 @@ export const binarySearch = (arr: number[], el: number, compareFn: CompareFn = C
     }
   }
   return ~m
+}
+
+const ONE_MIN = 60_000
+const ONE_HOUR = 3_600_000
+const SECTIONS = 10
+
+/** gradation should be 1min, 5min, 10min, 15min, 30min, 1h */
+const proposedRangesMs = [
+  ONE_MIN, // 1min
+  5 * ONE_MIN,
+  10 * ONE_MIN,
+  15 * ONE_MIN,
+  30 * ONE_MIN,
+  60 * ONE_MIN, // 1h
+]
+
+/** calculate optimal range duration in milliseconds */
+const findOptimalScale = (minMs: number, maxMs: number): [number[], string[], Map<string, number>] => {
+  // it should be not more than 10 ranges. minimal range is 1min, maximal is 1h
+  const rangeMs = Math.max(ONE_MIN, Math.min(ONE_HOUR, Math.ceil((maxMs - minMs) / SECTIONS / ONE_MIN) * ONE_MIN))
+  const rangeIndex = Math.abs(binarySearch(proposedRangesMs, rangeMs))
+  const range = proposedRangesMs[rangeIndex]
+
+  // compose array of new ranges started from minMs and ended with maxMs
+  const ranges: number[] = []
+  const labels: string[] = []
+  for (let i = minMs, j = 0; i <= maxMs + range; i += range, j += range) {
+    ranges.push(Math.round(i) * 1_000_000)
+    labels.push(`[${j}..${j + range})`)
+  }
+
+  const init = labels.reduce((acc, range) => acc.set(range, 0), new Map())
+  return [ranges, labels, init]
 }
 
 export const statisticsFn = (operation: Operations): StatFunc => {
@@ -44,50 +77,25 @@ export const statisticsFn = (operation: Operations): StatFunc => {
       return (numbers: number[]) => sl.histogram(numbers, 10)
     case `percentile`:
       return (numbers: number[]) => sl.percentile(numbers, 0.95)
-    case `frequiency`:
+    case `frequency`:
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       return (numbers: number[]) => numbers.reduce((acc, e) => acc.set(e, (acc.get(e) || 0) + 1), new Map())
     case `range`:
       return (_numbers: number[], _items: TRecord[]) => {
         // find min and max timestamps in items
         const timestamps = _items.map((item: any) => item.timestamp)
+
         // convert timestamps to nanoseconds to milliseconds and find min and max
         const minMs: number = Math.round(Math.min(...timestamps) / 1_000_000)
         const maxMs: number = Math.round(Math.max(...timestamps) / 1_000_000)
-
-        // calculate optimal range duration in milliseconds,
-        // it should be not more than 10 ranges. minimal range is 1min, maximal is 1h
-        // gradation should be 10sec, 30sec, 1min, 5min, 10min, 15min, 30min, 1h
-        const proposedRangesMs = [
-          10_000,
-          30_000,
-          60_000,
-          5 * 60_000,
-          10 * 60_000,
-          15 * 60_000,
-          30 * 60_000,
-          60 * 60_000,
-        ]
-        const rangeMs = Math.max(60_000, Math.min(3_600_000, Math.ceil((maxMs - minMs) / 10 / 60_000) * 60_000))
-        const rangeIndex = Math.abs(binarySearch(proposedRangesMs, rangeMs))
-        const range = proposedRangesMs[rangeIndex]
-
-        // compose array of new ranges started from minMs and ended with maxMs
-        const ranges: number[] = []
-        const aligned: string[] = []
-        for (let i = minMs, j = 0; i <= maxMs + range; i += range, j += range) {
-          ranges.push(Math.round(i) * 1_000_000)
-          aligned.push(`[${j}..${j + range})`)
-        }
+        const [ranges, labels, initials] = findOptimalScale(minMs, maxMs)
 
         // calculate number of items in each range
-        const init = aligned.reduce((acc, range) => acc.set(range, 0), new Map())
         const map = _items.reduce((acc: any, item: TRecord) => {
           const rangeIndex = Math.abs(binarySearch(ranges, Number(item.timestamp))) - 1
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          const sum = (acc.get(aligned[rangeIndex]) || 0) + Number(item.value)
-          return acc.set(aligned[rangeIndex], sum)
-        }, init)
+          const sum = acc.get(labels[rangeIndex]) + Number(item.value)
+          return acc.set(labels[rangeIndex], sum)
+        }, initials)
 
         return {
           units: `milliseconds`,

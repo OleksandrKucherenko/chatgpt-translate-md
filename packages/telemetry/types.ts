@@ -16,7 +16,7 @@ export interface Metrics {
 }
 
 export type Actions = `increment` | `decrement` | `value` | `impression` | `action` | `duration`
-export type Operations = `sum` | `avg` | `min` | `max` | `counter` | `histogram` | `percentile` | `frequiency` | `range`
+export type Operations = `sum` | `avg` | `min` | `max` | `counter` | `histogram` | `percentile` | `frequency` | `range`
 export interface KPI {
   description: string
   operation: Operations
@@ -36,5 +36,5 @@ export type Series = Record<string, { values: TRecord[] }>
 export type Schema<T extends keyof any> = Record<T, Operations | KPI>
 
 export interface Telemetry extends Metrics {
-  // TODO (olu): reserved for future use
+  // TODO (olku): reserved for future use
 }

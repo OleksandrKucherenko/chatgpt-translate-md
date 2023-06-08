@@ -1,8 +1,9 @@
 import * as gpt from 'openai'
+import { BASE_PATH } from 'openai/dist/base'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { PromisePool } from '@supercharge/promise-pool'
-import axios, { AxiosError, type AxiosResponse } from 'axios'
+import axios from 'axios'
 
 import { Dirs, Exits } from '@this/configuration'
 
@@ -10,6 +11,7 @@ import { appendFile, createFile, isFileExists } from './utils'
 import { type ChunkError, type Content, Kpi, type DocumentStrategy, type JobContext } from './types'
 import { Markdown } from './markdown'
 import { onFail, withUI } from './ui'
+import { createAxiosError } from './createAxiosError'
 
 /** How many chunks process at the same time. */
 export const MAX_CONCURRENCY_CHUNKS = 5
@@ -26,17 +28,17 @@ enum Errors {
 /** https://platform.openai.com/docs/guides/error-codes */
 // const ApiErrors = {
 //   401: [
-//     { message: "Invalid Authentication",	cause: "Invalid Authentication", soltuion: "Ensure the correct API key and requesting organization are being used." },
+//     { message: "Invalid Authentication",	cause: "Invalid Authentication", solution: "Ensure the correct API key and requesting organization are being used." },
 //     { message: "Incorrect API key provided",	cause: "The requesting API key is not correct.", solution: "Ensure the API key used is correct, clear your browser cache, or generate a new one."},
 //     { message: "You must be a member of an organization to use the API",	cause: "Your account is not part of an organization.", solution: "Contact us to get added to a new organization or ask your organization manager to invite you to an organization."},
 //   ],
 //   429: [
-//     { message: "Rate limit reached for requests",	cause: "You are sending requests too quickly.", soltuion: "Pace your requests. Read the Rate limit guide." },
-//     { message: "You exceeded your current quota, please check your plan and billing details",	cause: "You have hit your maximum monthly spend (hard limit) which you can view in the account billing section.", soltuion: "Apply for a quota increase." },
-//     { message: "The engine is currently overloaded, please try again later",	cause: "Our servers are experiencing high traffic.", soltuion: "Please retry your requests after a brief wait." },
+//     { message: "Rate limit reached for requests",	cause: "You are sending requests too quickly.", solution: "Pace your requests. Read the Rate limit guide." },
+//     { message: "You exceeded your current quota, please check your plan and billing details",	cause: "You have hit your maximum monthly spend (hard limit) which you can view in the account billing section.", solution: "Apply for a quota increase." },
+//     { message: "The engine is currently overloaded, please try again later",	cause: "Our servers are experiencing high traffic.", solution: "Please retry your requests after a brief wait." },
 //   ],
 //   500: [
-//     { message: "The server had an error while processing your request",	cause: "Issue on our servers.", soltuion: "Retry your request after a brief wait and contact us if the issue persists. Check the status page." },
+//     { message: "The server had an error while processing your request",	cause: "Issue on our servers.", solution: "Retry your request after a brief wait and contact us if the issue persists. Check the status page." },
 //   ],
 // }
 
@@ -68,18 +70,8 @@ export const createGptClient = (apiKey: string): gpt.OpenAIApi => {
   // do not raise exception on non-2xx responses
   axios.defaults.validateStatus = () => true
 
-  return new gpt.OpenAIApi(configuration)
+  return new gpt.OpenAIApi(configuration, BASE_PATH, axios)
 }
-
-/** stolen from: axios/lib/core/settle.js:17:12 */
-const createAxiosError = (response: AxiosResponse): AxiosError =>
-  new AxiosError(
-    `Request failed with status code ${response.status}`,
-    [AxiosError.ERR_BAD_REQUEST, AxiosError.ERR_BAD_RESPONSE][Math.floor(response.status / 100) - 4],
-    response.config,
-    response.request,
-    response
-  )
 
 /** Ask openai to do the magic */
 export const askGPT = async (text: string, prompt: string, context: JobContext): Promise<string> => {
@@ -152,7 +144,7 @@ export const reportErrors = async (errors: ChunkError[], context: JobContext): P
   if (errors.length === 0) return
 
   const { source, destination } = context.job
-  onFail(`⛔ Translation failed for ${source} -> ${destination}, log: ${context.job.log}`)
+  onFail(`Translation failed for ${source} -> ${destination}, log: ${context.job.log}`)
 
   throw new Error(Errors.Failed, { cause: Exits.errors.code })
 }
@@ -168,12 +160,10 @@ export const translate = async (content: string, context: JobContext): Promise<T
   const pool = await withUI(context, PromisePool.for(contentChunks.chunks))
     .withConcurrency(MAX_CONCURRENCY_CHUNKS)
     .useCorrespondingResults()
-    .process(async (chunk) => {
-      return await askGPTWithLogger(chunk, prompt, context)
-    })
+    .process(async (chunk) => await askGPTWithLogger(chunk, prompt, context))
 
   const { results, errors } = pool
-  context.stats.decrement(Kpi.files, 1)
+  context.stats.increment(Kpi.files, 1)
   await reportErrors(errors, context)
 
   // if one of the sections failed, replace it with the original text

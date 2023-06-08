@@ -1,22 +1,25 @@
-import Spinnies from 'spinnies'
+/* eslint-disable new-cap */
+import Spinnies from 'dreidels'
 import chalk from 'chalk'
 import { type OnProgressCallback, type PromisePool, type PromisePoolError } from '@supercharge/promise-pool'
 import { type PromisePoolExecutor } from '@supercharge/promise-pool/dist/promise-pool-executor'
 
 import { type JobContext, type UiStrategy } from './types'
 
+/** Extract cause from the errors array */
 const reportErrorsMessages = <T>(errors?: Array<PromisePoolError<T>>): string => {
   console.log(`errors: `, JSON.stringify(errors, null, 2))
 
   return (errors ?? [])
     .map((error) => {
       const stackFirstLine = error.stack?.split(`\n`)[0] ?? ``
-      return `${error.message} / ${stackFirstLine}`
+      return `${error.message} <~ ${stackFirstLine}`
     })
     .join(`, `)
 }
 
-const spinnies = new Spinnies()
+// @ts-expect-error something wrong with package
+const spinnies = new Spinnies.default()
 
 export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePool<T> => {
   const { source } = context.job
@@ -56,15 +59,11 @@ export const onScreen = (line: string): void => {
 }
 
 export const onSuccess = (line: string): void => {
-  spinnies.add(`success`, { text: line })
-  spinnies.succeed(`success`, { text: line })
-  spinnies.remove(`success`)
+  spinnies.add(`success`, { text: line }).succeed({ text: line })
 }
 
 export const onFail = (line: string): void => {
-  spinnies.add(`fail`, { text: line })
-  spinnies.fail(`fail`, { text: line })
-  spinnies.remove(`fail`)
+  spinnies.add(`fail`, { text: line }).fail(`fail`, { text: line })
 }
 
 export const ConsoleUi: UiStrategy = {
@@ -77,6 +76,7 @@ export default ConsoleUi
 // Refs:
 // - https://github.com/sindresorhus/ora
 // - https://github.com/jbcarpanelli/spinnies
+//   - https://github.com/SweetMNM/dreidels (spinnies fork with enhancements)
 // - https://github.com/SamVerschueren/listr
 // - https://github.com/LaboratorioInternacionalWeb/Multispinners
 // - https://github.com/sindresorhus/cli-spinners

@@ -20,15 +20,15 @@
     "@this/configuration": "*",
     "@this/gc": "*",
     "@this/telemetry": "*",
-    "@types/spinnies": "^0.5.0",
     "axios": "^1.4.0",
     "chalk": "^5.2.0",
+    "cli-spinners": "^2.9.0",
+    "dreidels": "next",
     "glob": "^10.2.6",
     "gpt-3-encoder": "^1.1.4",
     "handlebars": "^4.7.7",
     "openai": "^3.2.1",
-    "ora": "^6.3.1",
-    "spinnies": "^0.5.1",
+    "signal-exit": "^4.0.2",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

@@ -43,7 +43,7 @@ export const metrics = (session: string): Telemetry => {
       appendFile(telemetryFile, `${process.hrtime.bigint()},${name},action,${json}\n`).finally(() => {})
     },
 
-    /** At least two calls of this function required. Durarion is a distance in time between those two calls. */
+    /** At least two calls of this function required. Duration is a distance in time between those two calls. */
     duration(name: string, value: number | string): void {
       appendFile(telemetryFile, `${process.hrtime.bigint()},${name},duration,${value}\n`).finally(() => {})
     },

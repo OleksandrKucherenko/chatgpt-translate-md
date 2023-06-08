@@ -33,7 +33,7 @@ const CurrentSchema: Schema<Kpi> = {
   'total:api:calls': { description: `Number of API Calls`, operation: `counter` },
   'histogram:api:response:time': { description: `Distribution of API Response Time`, operation: `histogram` },
   'total:api:errors': { description: `Number of API Errors`, operation: `counter` },
-  'histogram:api:errors': { description: `Distribution of API Errors`, operation: `frequiency` },
+  'histogram:api:errors': { description: `Distribution of API Errors`, operation: `frequency` },
   'total:content:bytes:read': { description: `Number of Content Bytes Read`, operation: `sum` },
   'total:content:bytes:written': { description: `Number of Content Bytes Written`, operation: `sum` },
 }

@@ -33,8 +33,9 @@ export enum Events {
   exit = `exit`,
   /** Unhandled error. */
   error = `error`,
-  /**  */
+  /** Initialize application context. */
   init = `init`,
+  /** Run major code of the application. */
   main = `main`,
 }
 

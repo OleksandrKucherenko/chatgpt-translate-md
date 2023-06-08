@@ -3,10 +3,11 @@ import chalk from 'chalk'
 
 import { emitter, Events } from '@this/gc'
 import { type Context, type RichContext, processArguments, Routes, mask } from '@this/arguments'
-import { Dirs, dumpD, Exits, log } from '@this/configuration'
+import { Dirs, dumpD, Exits } from '@this/configuration'
 import { metrics } from '@this/telemetry'
 import { execute as executeTranslate } from './command.translate'
 import { createFile } from './utils'
+import { onSuccess } from './ui'
 
 export const initialize = async (args: string[]): Promise<void> => {
   const context: Context = await processArguments(args)
@@ -17,13 +18,10 @@ export const initialize = async (args: string[]): Promise<void> => {
 
   // create session log, save execution command
   const logFile = path.resolve(Dirs.local, context.flags.session, `exec.log`)
-  const logContent = `Command:\n\n${args.join(` \\\n\t`)}\n\nParsed Arguments:\n\n${JSON.stringify(
-    mask(context.flags),
-    null,
-    2
-  )}\n\n`
+  const logContext = JSON.stringify(mask(context.flags), null, 2)
+  const logContent = `Command:\n\n${args.join(` \\\n\t`)}\n\nParsed Arguments:\n\n${logContext}\n\n`
   await createFile(logContent, logFile)
-  log(`Execution log saved to: %s`, chalk.yellowBright(logFile))
+  onSuccess(`Execution log saved to: ${chalk.yellowBright(logFile)}`)
 
   // initialization done, time to run main code
   emitter.emit(Events.main, enhanced)

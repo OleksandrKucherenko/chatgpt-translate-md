@@ -6,7 +6,7 @@ export const FROM_ARGS = `provided via arguments`
 
 /** force prompts to render 10 lines */
 export const AUTOSUGGESTION_CHOICES = [
-  { title: `Current working directory`, value: process.cwd() },
+  { title: `Current working directory (${process.cwd()})`, value: process.cwd() },
   { title: `Parent directory`, value: `../` },
   { title: `Grand directory`, value: `../../` },
   { title: `Home directory`, value: `~` },
