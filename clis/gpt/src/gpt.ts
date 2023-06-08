@@ -121,12 +121,13 @@ export const askGPTWithLogger = async (text: string, prompt: string, context: Jo
 
   try {
     const content = await askGPT(text, prompt, context)
-    await appendFile(`Answer:\n\n${content}\n----\n`, context.job.log)
+    const replyLog = `Answer:\n----\n${content}\n----\n`
+    await appendFile(replyLog, context.job.log)
 
     return content
   } catch (error: any) {
     context.stats.increment(Kpi.errors, 1)
-    const errorLog = `Error:\n\n${JSON.stringify(error, null, 2)}\n----\n`
+    const errorLog = `Error:\n----\n${JSON.stringify(error, null, 2)}\n----\n`
     await appendFile(errorLog, context.job.log)
 
     // TODO (olku): add into error log file hint how to execute tool with
@@ -146,7 +147,7 @@ export const reportErrors = async (errors: ChunkError[], context: JobContext): P
   const { source, destination } = context.job
   onFail(`Translation failed for ${source} -> ${destination}, log: ${context.job.log}`)
 
-  throw new Error(Errors.Failed, { cause: Exits.errors.code })
+  throw Object.assign(new Error(Errors.Failed, { cause: Exits.errors.code }), { errors })
 }
 
 /** Translate provided content. */
