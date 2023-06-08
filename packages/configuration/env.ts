@@ -7,7 +7,7 @@ import path from 'node:path'
 
 const NODE_ENV = process.env.NODE_ENV ?? `development`
 const CWD = process.cwd()
-const ROOT = (findConfig(`.env`, { cwd: CWD }) ?? '').replace(/\.env$/, '')
+const ROOT = (findConfig(`.env`, { cwd: CWD }) ?? ``).replace(/\.env$/, ``)
 
 logD(`node environment: %o`, NODE_ENV)
 logD(`exec directory: %o`, CWD)
@@ -38,6 +38,8 @@ export const Exits = Object.freeze({
   unhandled: { name: `Unknown Error`, code: 2 },
   /** Gracefully shutdown. */
   termination: { name: `Terminated`, code: 3 },
+  /** Errors during processing. */
+  errors: { name: `Errors`, code: 4 },
 })
 
 export type ExitsType = typeof Exits.success

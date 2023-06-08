@@ -7,9 +7,6 @@
   "references": [
     {
       "path": "../configuration"
-    },
-    {
-      "path": "../telemetry"
     }
   ]
 }

@@ -10,7 +10,7 @@
   "main": "src/index.ts",
   "bin": "src/index.ts",
   "scripts": {
-    "build": "rimraf dist && tsc --showConfig",
+    "build": "rimraf dist && tsc",
     "dev": "ts-node src/index.ts",
     "cleanup": "rimraf dist"
   },
@@ -19,16 +19,23 @@
     "@this/arguments": "*",
     "@this/configuration": "*",
     "@this/gc": "*",
+    "@this/telemetry": "*",
+    "axios": "^1.4.0",
+    "chalk": "^5.2.0",
+    "cli-spinners": "^2.9.0",
+    "dreidels": "next",
     "glob": "^10.2.6",
     "gpt-3-encoder": "^1.1.4",
     "handlebars": "^4.7.7",
     "openai": "^3.2.1",
-    "ora": "^6.3.1"
+    "signal-exit": "^4.0.2",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/jest": "^29.5.1",
     "@types/node": "18.16.15",
+    "@types/uuid": "^9.0.1",
     "jest": "^29.5.0",
     "json5": "^2.2.3",
     "rimraf": "^5.0.1",

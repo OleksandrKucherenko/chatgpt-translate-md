@@ -12,14 +12,19 @@ import { type AllFlags, ApplicationName, ApplicationVersion, GlobalFlags, Routes
 import { type Context, type TypedArguments } from './context'
 import { FROM_ARGS } from './utils'
 
-export const mask = <T extends object>(data: T) => {
-  const options = {
-    passwordFields: [`token`, `t`, `flags.token`, `flags.t`, `token[0]`],
-    passwordMaskOptions: { maskWith: `*`, unmaskedStartCharacters: 3, unmaskedEndCharacters: 4 },
-  }
+export const GROUP_GLOBAL = `Global options:`
+
+export const MASK_OPTIONS: MaskData.JsonMask2Configs = {
+  passwordFields: [`token`, `t`, `flags.token`, `flags.t`, `token[0]`],
+  passwordMaskOptions: { maskWith: `*`, unmaskedStartCharacters: 3, unmaskedEndCharacters: 4 },
+}
+
+/** Helper function that removes sensitive information from outputs. */
+export const mask = <T extends object>(data: T, options: MaskData.JsonMask2Configs = MASK_OPTIONS): T => {
   return MaskData.maskJSON2(data, options)
 }
 
+/** Helper that resolve Defaults to runtime values. */
 const resolveDefaults = (defaults: Predefined): TypedArguments => {
   const entries = Object.entries(defaults).map(([name, values]) => {
     const value = values.find((a) => a != null && typeof a !== `undefined`)
@@ -30,11 +35,14 @@ const resolveDefaults = (defaults: Predefined): TypedArguments => {
   return Object.fromEntries(entries) as TypedArguments
 }
 
-const removeUndefined = <T extends object>(data: T): T =>
+// TODO (olku): make function recursive in removing undefined
+/** Helper that removes undefined properties from object. */
+const omitUndefined = <T extends object>(data: T): T =>
   Object.entries(data)
     .filter(([, value]) => value !== undefined)
     .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {}) as T
 
+/** Helper that compose runtime Switch with injected defaults and extras. */
 const resolveOption = (name: AllFlags, option: Switch, defaults: Predefined, extras: Extras): Switch => {
   const resolved = resolveDefaults(defaults)
   const { type = `string`, ...other } = option
@@ -49,6 +57,7 @@ const resolveOption = (name: AllFlags, option: Switch, defaults: Predefined, ext
   }
 }
 
+/** Configure yargs parser with the commands definitions. */
 const configureCommands = (parser: yargs.Argv, defaults = Defaults, commands = Yargs): yargs.Argv => {
   dumpD(`defaults %O and commands %O`, mask(defaults), commands)
 
@@ -80,6 +89,7 @@ const configureCommands = (parser: yargs.Argv, defaults = Defaults, commands = Y
   return mutableParser
 }
 
+/** Configure yargs parser with the global options/flags/switches. */
 const configureGlobalOptions = (parser: yargs.Argv, defaults = Defaults, options = Options): yargs.Argv => {
   dumpD(`defaults %O and options %O`, mask(defaults), options)
 
@@ -94,7 +104,7 @@ const configureGlobalOptions = (parser: yargs.Argv, defaults = Defaults, options
 
     mutableParser = mutableParser.option(
       name,
-      resolveOption(name, options[name] as Switch, defaults, { group: `Global options:` })
+      resolveOption(name, options[name] as Switch, defaults, { group: GROUP_GLOBAL })
     )
   })
 
@@ -116,6 +126,7 @@ const reportDefaultResolutions = (_context: Context, questions: prompts.PromptOb
  *                                --> Questions  <-- Defaults
  */
 
+/** Parse command line arguments. */
 export const parseArguments = async (args: string[], defaults = Defaults): Promise<Context> => {
   let parser = yargs()
     .scriptName(ApplicationName)
@@ -131,11 +142,12 @@ export const parseArguments = async (args: string[], defaults = Defaults): Promi
   parser = configureGlobalOptions(parser, defaults)
 
   const argv: TypedArguments = (await parser.parseAsync(hideBin(args))) as unknown as TypedArguments
-  const flags: TypedArguments = { ...resolveDefaults(defaults), ...removeUndefined(argv) }
+  const flags: TypedArguments = { ...resolveDefaults(defaults), ...omitUndefined(argv) }
 
   return { flags }
 }
 
+/** confirm arguments by user input. */
 export const confirmArguments = async (context: Context, commands = Yargs, questions = Prompts): Promise<Context> => {
   dumpD(`context %O and prompts %O`, mask(context), questions)
 
@@ -143,11 +155,11 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
     flags: { ask: interactive, command: execCommand },
   } = context
 
-  log(`command mode: %s`, execCommand)
+  log(`%s mode: %s`, chalk.yellowBright(`command`), chalk.blue(execCommand))
 
   const command = commands[execCommand]
   const toConfirm = (command.questions ?? []).map((name) => {
-    if (!questions[name]) throw new Error(`Prompts are not defined for option: ${name}`)
+    // if (!questions[name]) throw new Error(`Prompts are not defined for option: ${name}`)
     const { type, ...rest } = questions[name] as Question
 
     const obj: prompts.PromptObject = {
@@ -159,7 +171,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
     }
 
     // special case: for making provided value from arguments visible we should include it into choices
-    if (obj.type === 'autocomplete') {
+    if (obj.type === `autocomplete`) {
       obj.choices = [...(obj?.choices as Choice[]), { value: context.flags[name], title: FROM_ARGS }]
     }
 
@@ -184,6 +196,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
   return { ...context, flags: { ...context.flags, ...mutated } }
 }
 
+/** Parse arguments and confirm them via user input if needed. */
 export const processArguments = async (args: string[], defaults = Defaults): Promise<Context> => {
   const context = await parseArguments(args, defaults)
   return await confirmArguments(context)

@@ -33,8 +33,9 @@ export enum Events {
   exit = `exit`,
   /** Unhandled error. */
   error = `error`,
-  /**  */
+  /** Initialize application context. */
   init = `init`,
+  /** Run major code of the application. */
   main = `main`,
 }
 
@@ -46,7 +47,10 @@ emitter.on(Events.exit, gracefulShutdown)
 
 /** on ERROR signal, report error into stdout. */
 emitter.on(Events.error, (error) => {
+  // do not print stack trace for report of errors and abort operations
   if (error instanceof Error && error.cause === Exits.abort.code) {
+    log(`%O`, error.message)
+  } else if (error instanceof Error && error.cause === Exits.errors.code) {
     log(`%O`, error.message)
   } else {
     log(`${Exits.unhandled.name} %O`, error)
@@ -84,17 +88,3 @@ export const safe =
       emitter.emit(Events.error, error)
     }
   }
-
-export type AtomicCounter = { counter: Int32Array }
-
-export const composeAtomicCounter = (): AtomicCounter => {
-  return { counter: new Int32Array(new SharedArrayBuffer(4)) }
-}
-
-export const increment = <T>(c: AtomicCounter, fn2: Promise<T>) =>
-  new Promise((resolve, reject) => {
-    fn2
-      .then((value) => resolve(value))
-      .catch((error) => reject(error))
-      .finally(() => Atomics.add(c.counter, 0, 1))
-  })

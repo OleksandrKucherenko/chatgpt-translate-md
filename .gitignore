@@ -17,7 +17,6 @@ coverage/
 build/
 .cache/
 reports/
-output/
 
 # backup files
 *.bak
@@ -29,3 +28,7 @@ output/
 # environment files
 .env.*.local
 .env.local
+
+# unit tests data
+output/*
+!output/160638f3-3dbc-4a3f-b416-f94c732bc3bb

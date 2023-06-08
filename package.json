@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@goldstack/utils-typescript-references": "^0.3.7",
+    "@jest/globals": "^29.5.0",
     "@tsconfig/node18": "^2.0.1",
     "@types/eslint": "^8.40.0",
     "@types/node": "^18.16.15",
@@ -35,20 +36,23 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.1",
     "husky": "^8.0.3",
+    "jest": "^29.5.0",
     "json5": "^2.2.3",
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8",
     "rimraf": "^5.0.1",
+    "ts-jest": "^29.1.0",
+    "ts-jest-mock-import-meta": "^1.0.0",
+    "ts-node": "^10.9.1",
     "tslib": "^2.5.2",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "uuid": "^9.0.0"
   },
   "engines": {
     "node": ">=18.0.0 <19.0.0"
   },
   "dependencies": {
-    "cli-gpt": "*",
-    "ts-node": "^10.9.1",
-    "uuid": "^9.0.0"
+    "cli-gpt": "*"
   },
   "dependenciesMeta": {
     "ts-node@10.9.1": {

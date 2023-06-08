@@ -50,8 +50,9 @@
     "types": ["node", "jest"] /* Type declaration files to be included in compilation. */
   },
   "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
+    "esm": true, /* enaled ESM */
+    "files": true, /* allow custom TS types loading */
+    "experimentalSpecifierResolution": "node" /* allow loading of modules */
   },
   /* By default, we expect `src/` folder be available, so for packages we need to override it */
   "include": ["clis/**/*", "packages/**/*", "services/**/*", "websites/**/*"],
