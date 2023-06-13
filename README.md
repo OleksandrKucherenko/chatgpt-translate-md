@@ -5,6 +5,24 @@
   - [Secrets (or Sensitive Data)](#secrets-or-sensitive-data)
   - [References](#references)
 
+## Roadmap
+
+version 1:
+
+- [x] Support Markdown documents
+
+version 2:
+
+- [ ] Support CSV documents
+- [ ] Support JSON documents
+- [ ] Support data extraction from different online sources:
+  - [ ] Google Sheets
+  - [ ] Gmail
+
+version 3:
+
+- [ ] reinforce next chunk with a summary of the previous chunk
+
 ## Developer Environment
 
 - NVM v0.36 (https://github.com/nvm-sh/nvm#installation-and-update)

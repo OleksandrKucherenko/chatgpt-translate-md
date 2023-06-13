@@ -4,6 +4,7 @@ import utils from 'node:util'
 import { glob } from 'glob'
 import { PromisePool } from '@supercharge/promise-pool'
 import { v4 as uuid } from 'uuid'
+import chalk from 'chalk'
 
 import { Dirs, dumpD, Exits, log } from '@this/configuration'
 import type { Context, RichContext, TypedArguments } from '@this/arguments'
@@ -11,7 +12,7 @@ import type { Context, RichContext, TypedArguments } from '@this/arguments'
 import { translateFile } from './gpt'
 import { createFile } from './utils'
 import { type Job, type JobError, Statistics } from './types'
-import { onScreen, onSuccess } from './ui'
+import { spinnies, onSuccess } from './ui'
 
 type FindOptions = Pick<TypedArguments, `cwd` | `ignore` | `list`>
 type DestinationOptions = Pick<TypedArguments, `overwrite` | `language` | `cwd` | `session`>
@@ -93,12 +94,14 @@ export const reportErrors = async (errors: JobError[], context: Context): Promis
 
 /** Report all collected statistic */
 export const reportStats = async (from: bigint, context: RichContext): Promise<void> => {
+  spinnies.stopAll()
+
   const finals = await context.stats.stats(from, process.hrtime.bigint(), Statistics)
   log(`statistics: %O`, finals)
 
   Object.keys(finals.statistics).forEach((key) => {
     const dump = utils.inspect(finals.statistics[key], { depth: 3 })
-    onScreen(`${key}: ${dump}`)
+    onSuccess(`${chalk.white(key)}: ${dump}`)
   })
 }
 

@@ -8,10 +8,9 @@ import { type JobContext, type UiStrategy } from './types'
 
 /** Extract cause from the errors array */
 const reportErrorsMessages = <T>(errors?: Array<PromisePoolError<T>>): string => {
-  console.log(`errors: `, JSON.stringify(errors, null, 2))
-
   return (errors ?? [])
     .map((error) => {
+      onFail(`error: ${JSON.stringify(error)}`)
       const stackFirstLine = error.stack?.split(`\n`)[0] ?? ``
       return `${error.message} <~ ${stackFirstLine}`
     })
@@ -19,7 +18,7 @@ const reportErrorsMessages = <T>(errors?: Array<PromisePoolError<T>>): string =>
 }
 
 // @ts-expect-error something wrong with package
-const spinnies = new Spinnies.default()
+export const spinnies = new Spinnies.default()
 
 export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePool<T> => {
   const { source } = context.job
@@ -31,7 +30,7 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
     const active = pool.activeTasksCount()
     const processed = pool.processedCount()
     const progress = pool.processedPercentage().toFixed(1)
-    const totalJobs = executor.items().length
+    const totalJobs = executor.itemsCount()
     const totalErrors = executor.errors().length
 
     if (totalJobs === processed) {
@@ -54,8 +53,8 @@ export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePoo
   return pool.onTaskStarted(progress).onTaskFinished(progress)
 }
 
-export const onScreen = (line: string): void => {
-  console.log(line)
+export const onScreen = (line: string, ...rest: any[]): void => {
+  console.log(line, ...rest)
 }
 
 export const onSuccess = (line: string): void => {
