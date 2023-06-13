@@ -2,7 +2,7 @@
 
 import * as sl from 'stats-lite'
 import { type TimeRecord, type TRecord, type Operations, type Series, type Schema, type Finals } from './types'
-import { logD } from '@this/configuration'
+import { dumpD, logD } from '@this/configuration'
 
 export const polarity = (item: TimeRecord): object | number | string =>
   item.action === `decrement` ? -Number(item.value) : item.value
@@ -28,6 +28,8 @@ export const binarySearch = (arr: number[], el: number, compareFn: CompareFn = C
   return ~m
 }
 
+/** One millisecond in nanoseconds. */
+const MILLISECOND = 1_000_000
 const ONE_MIN = 60_000
 const ONE_HOUR = 3_600_000
 const SECTIONS = 10
@@ -53,7 +55,7 @@ const findOptimalScale = (minMs: number, maxMs: number): [number[], string[], Ma
   const ranges: number[] = []
   const labels: string[] = []
   for (let i = minMs, j = 0; i <= maxMs + range; i += range, j += range) {
-    ranges.push(Math.round(i) * 1_000_000)
+    ranges.push(Math.round(i) * MILLISECOND)
     labels.push(`[${j}..${j + range})`)
   }
 
@@ -81,9 +83,9 @@ export const statisticsFn = (operation: Operations): StatFunc => {
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       return (numbers: number[]) => numbers.reduce((acc, e) => acc.set(e, (acc.get(e) || 0) + 1), new Map())
     case `range`:
-      return (_numbers: number[], _items: TRecord[]) => {
+      return (_numbers: number[], items: TRecord[]) => {
         // find min and max timestamps in items
-        const timestamps = _items.map((item: any) => item.timestamp)
+        const timestamps = items.map((item: any) => item.timestamp)
 
         // convert timestamps to nanoseconds to milliseconds and find min and max
         const minMs: number = Math.round(Math.min(...timestamps) / 1_000_000)
@@ -91,7 +93,7 @@ export const statisticsFn = (operation: Operations): StatFunc => {
         const [ranges, labels, initials] = findOptimalScale(minMs, maxMs)
 
         // calculate number of items in each range
-        const map = _items.reduce((acc: any, item: TRecord) => {
+        const map = items.reduce((acc: any, item: TRecord) => {
           const rangeIndex = Math.abs(binarySearch(ranges, Number(item.timestamp))) - 1
           const sum = acc.get(labels[rangeIndex]) + Number(item.value)
           return acc.set(labels[rangeIndex], sum)
@@ -102,6 +104,26 @@ export const statisticsFn = (operation: Operations): StatFunc => {
           map,
           duration: `${(maxMs - minMs) / 1000}sec`,
           avg: sl.mean([...map.values()]),
+        }
+      }
+    case `duration`:
+      return (_numbers: number[], items: TRecord[]) => {
+        const rawValues = items.map((item) => item.value as number)
+        const minMs = Math.round(Math.min(...rawValues) / MILLISECOND)
+        const maxMs = Math.round(Math.max(...rawValues) / MILLISECOND)
+
+        const ranges = items
+          .map((item) => ({ label: item.tag, value: (item.value as number) / MILLISECOND }))
+          .sort((a, b) => CompareNumbers(a.value, b.value))
+
+        return {
+          units: `milliseconds`,
+          min: minMs,
+          max: maxMs,
+          timeline: items.map((item) => [item.timestamp, item.tag, (item.value as number) / MILLISECOND]),
+          mapping: ranges.map(({ label, value }) => [label, value]),
+          avg: sl.mean(rawValues) / MILLISECOND,
+          count: rawValues.length,
         }
       }
     default:
@@ -119,6 +141,39 @@ export const stats = async (from: bigint, to: bigint, schema: Schema<any>, data:
       return { ...acc, [name]: { ...prev, values: [...prev.values, { timestamp, action, value }] } }
     }, {})
 
+  // process series with durations
+  Object.entries(schema)
+    .filter(([, value]) => value.operation === `duration`)
+    .forEach(([key]) => {
+      const { values } = series[key]
+      const converted = values.reduce((acc, item) => {
+        return acc.set(item.value as string, [...(acc.get(item.value as string) ?? []), item])
+      }, new Map<string, TRecord[]>())
+      dumpD(`converted: %O`, converted)
+
+      const preFinals = [...converted.entries()].reduce((acc, entry) => {
+        const [key, records] = entry
+        const value: TRecord[] = []
+
+        for (let i = 0; i < records.length; i += 2) {
+          const [first, second] = records.slice(i, i + 2)
+          const duration = Number(second.timestamp) - Number(first.timestamp)
+          value.push({ timestamp: first.timestamp, action: first.action, value: duration, tag: first.value })
+        }
+
+        return acc.set(key, value)
+      }, new Map<string, TRecord[]>())
+      dumpD(`preFinals: %O`, preFinals)
+
+      const finals: TRecord[] = [...preFinals.entries()]
+        .map(([, records]) => records)
+        .flat()
+        .sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+      dumpD(`finals: %O`, finals)
+
+      series[key].values = finals
+    })
+
   // calculate statistics
   const statistics = Object.keys(schema).reduce((acc, key) => {
     try {
@@ -130,6 +185,7 @@ export const stats = async (from: bigint, to: bigint, schema: Schema<any>, data:
       return { [key]: results, ...acc }
     } catch (error) {
       logD(`error: %O`, error)
+      // console.error(`error. series ['${key}'] = `, series[key])
       return { ...acc, [key]: `error` }
     }
   }, {})

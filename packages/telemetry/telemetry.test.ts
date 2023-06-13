@@ -5,13 +5,13 @@ import { type Schema } from './types'
 enum Kpi {
   /** reported by API usage of tokens */
   usedTokens = `per:minute:used:tokens`, // increment
-  /** number of starte operations */
+  /** number of started operations */
   operations = `per:minute:operations`, // value
   /** this more like estimated token usage, only after API call we will know the real usage. */
   tokens = `total:used:tokens`, // increment
   /** total number of files that is decremented on each processed. */
   files = `total:processed:files`, // set value, with decrement
-  /** Also correspond the total amound of chunks. */
+  /** Also correspond the total amount of chunks. */
   calls = `total:api:calls`, // increment
   /** api response duration */
   responseAt = `histogram:api:response:time`, // duration 'start'|'end'
@@ -31,7 +31,7 @@ const CurrentSchema: Schema<Kpi> = {
   'total:used:tokens': { description: `Total Number of Used Tokens`, operation: `sum` },
   'total:processed:files': { description: `Number of Processed Files`, operation: `counter` },
   'total:api:calls': { description: `Number of API Calls`, operation: `counter` },
-  'histogram:api:response:time': { description: `Distribution of API Response Time`, operation: `histogram` },
+  'histogram:api:response:time': { description: `Distribution of API Response Time`, operation: `duration` },
   'total:api:errors': { description: `Number of API Errors`, operation: `counter` },
   'histogram:api:errors': { description: `Distribution of API Errors`, operation: `frequency` },
   'total:content:bytes:read': { description: `Number of Content Bytes Read`, operation: `sum` },
@@ -49,13 +49,49 @@ describe(`telemetry`, () => {
     // delete session directory test data
   })
 
-  test(`stats`, async () => {
+  test(`should calculate stats - number of calls`, async () => {
+    // GIVEN: session directory with test data
     const statistics = metrics(session)
 
-    // time is in nanoseconds
+    // WHEN: calculate statistics, time is in nanoseconds
     const data = await statistics.stats(0n, 2026370565810374n, CurrentSchema)
-    console.dir(data.statistics, { depth: 2 })
 
+    // THEN: statistics are calculated correctly
     expect(data.statistics[Kpi.calls]).toBe(33)
+  })
+
+  test(`should calculate stats - one failed call`, async () => {
+    // GIVEN: session directory with test data
+    const statistics = metrics(session)
+
+    // WHEN: calculate statistics, time is in nanoseconds
+    const data = await statistics.stats(0n, 2026370565810374n, CurrentSchema)
+
+    // THEN: statistics are calculated correctly
+    expect(Object.fromEntries(data.statistics[Kpi.codes])).toStrictEqual(
+      expect.objectContaining({ '200': 32, '502': 1 })
+    )
+  })
+
+  test(`should calculate stats - extracted durations`, async () => {
+    // GIVEN: session directory with test data
+    const statistics = metrics(session)
+
+    // WHEN: calculate statistics, time is in nanoseconds
+    const data = await statistics.stats(0n, 2026370565810374n, CurrentSchema)
+    console.dir(data.statistics, { depth: 3, breakLength: 120 })
+
+    // THEN: statistics are calculated correctly
+    expect(data.statistics[Kpi.responseAt]).toEqual(
+      expect.objectContaining({
+        units: `milliseconds`,
+        min: 4,
+        max: 82659,
+        avg: 15278.353301515152,
+        timeline: expect.any(Array),
+        mapping: expect.any(Array),
+        count: 33,
+      })
+    )
   })
 })

@@ -1,5 +1,5 @@
 import type { Arguments } from './types'
-import { type Metrics } from '@this/telemetry'
+import { type Telemetry } from '@this/telemetry'
 
 export interface TypedArguments extends Arguments {
   // TODO (olku): add typed arguments from yargs
@@ -25,7 +25,7 @@ export interface Storage {
 }
 
 export interface Statistics {
-  readonly stats: Metrics
+  readonly stats: Telemetry
 }
 
 export interface RichContext extends Context, Storage, Statistics {}
