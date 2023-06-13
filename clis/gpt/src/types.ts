@@ -31,7 +31,7 @@ export const Statistics: Schema<Kpi> = {
   'total:used:tokens': { description: `Total Number of Used Tokens`, operation: `sum` },
   'total:processed:files': { description: `Number of Processed Files`, operation: `counter` },
   'total:api:calls': { description: `Number of API Calls`, operation: `counter` },
-  'histogram:api:response:time': { description: `Distribution of API Response Time`, operation: `histogram` },
+  'histogram:api:response:time': { description: `Distribution of API Response Time`, operation: `duration` },
   'total:api:errors': { description: `Number of API Errors`, operation: `counter` },
   'histogram:api:errors': { description: `Distribution of API Errors`, operation: `frequency` },
   'total:content:bytes:read': { description: `Number of Content Bytes Read`, operation: `sum` },

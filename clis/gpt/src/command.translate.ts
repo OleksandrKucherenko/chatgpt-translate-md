@@ -11,7 +11,7 @@ import type { Context, RichContext, TypedArguments } from '@this/arguments'
 
 import { translateFile } from './gpt'
 import { createFile } from './utils'
-import { type Job, type JobError, Statistics } from './types'
+import { type Job, type JobError, Statistics, type Kpi } from './types'
 import { spinnies, onSuccess } from './ui'
 
 type FindOptions = Pick<TypedArguments, `cwd` | `ignore` | `list`>
@@ -100,7 +100,8 @@ export const reportStats = async (from: bigint, context: RichContext): Promise<v
   log(`statistics: %O`, finals)
 
   Object.keys(finals.statistics).forEach((key) => {
-    const dump = utils.inspect(finals.statistics[key], { depth: 3 })
+    const kpi = key as Kpi
+    const dump = utils.inspect(finals.statistics[kpi], { depth: 3 })
     onSuccess(`${chalk.white(key)}: ${dump}`)
   })
 }
