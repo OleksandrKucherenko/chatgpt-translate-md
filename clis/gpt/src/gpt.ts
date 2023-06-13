@@ -67,10 +67,11 @@ export const selectStrategy = (file: string): DocumentStrategy => {
 export const createGptClient = (apiKey: string): gpt.OpenAIApi => {
   const configuration = new gpt.Configuration({ apiKey })
 
+  // NOTE (olku): for some unknown reason OpenAPI sdk ignores this configuration
   // do not raise exception on non-2xx responses
-  axios.defaults.validateStatus = () => true
+  const instance = axios.create({ validateStatus: () => true })
 
-  return new gpt.OpenAIApi(configuration, BASE_PATH, axios)
+  return new gpt.OpenAIApi(configuration, BASE_PATH, instance)
 }
 
 /** Ask openai to do the magic */
@@ -89,19 +90,19 @@ export const askGPT = async (text: string, prompt: string, context: JobContext):
     top_p: 0.5,
   }
 
-  const response = await openAIApi.createChatCompletion(query)
+  const response = await openAIApi.createChatCompletion(query, { validateStatus: () => true })
   context.stats.value(Kpi.codes, response.status)
 
-  const {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    usage: { total_tokens = 0 } = { total_tokens: 0 },
-    choices: [{ message: { content } = { content: `` } }],
-  } = response.data
+  const data: gpt.CreateChatCompletionResponse = response.data ?? { usage: { total_tokens: 0 }, choices: [] }
+  const usage = data.usage ?? { total_tokens: 0 }
+  const choices = data.choices ?? []
+  const totalTokens = usage.total_tokens ?? 0
+  const content = choices[0]?.message?.content ?? ``
 
   // extract statistics from response
   context.stats.duration(Kpi.responseAt, `${context.job.id}`)
-  context.stats.increment(Kpi.tokens, total_tokens)
-  context.stats.increment(Kpi.usedTokens, total_tokens)
+  context.stats.increment(Kpi.tokens, totalTokens)
+  context.stats.increment(Kpi.usedTokens, totalTokens)
 
   // raise errors on non-2xx responses or empty content
   if (!(response.status >= 200 && response.status < 300))

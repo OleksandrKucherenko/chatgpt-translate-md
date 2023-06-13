@@ -4,6 +4,7 @@ import utils from 'node:util'
 import { glob } from 'glob'
 import { PromisePool } from '@supercharge/promise-pool'
 import { v4 as uuid } from 'uuid'
+import chalk from 'chalk'
 
 import { Dirs, dumpD, Exits, log } from '@this/configuration'
 import type { Context, RichContext, TypedArguments } from '@this/arguments'
@@ -100,7 +101,7 @@ export const reportStats = async (from: bigint, context: RichContext): Promise<v
 
   Object.keys(finals.statistics).forEach((key) => {
     const dump = utils.inspect(finals.statistics[key], { depth: 3 })
-    onSuccess(`${key}: ${dump}`)
+    onSuccess(`${chalk.white(key)}: ${dump}`)
   })
 }
 
