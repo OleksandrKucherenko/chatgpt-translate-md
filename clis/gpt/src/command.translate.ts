@@ -101,7 +101,7 @@ export const reportStats = async (from: bigint, context: RichContext): Promise<v
 
   Object.keys(finals.statistics).forEach((key) => {
     const kpi = key as Kpi
-    const dump = utils.inspect(finals.statistics[kpi], { depth: 3 })
+    const dump = utils.inspect(finals.statistics[kpi], { depth: 3, breakLength: 120 })
     onSuccess(`${chalk.white(key)}: ${dump}`)
   })
 }
