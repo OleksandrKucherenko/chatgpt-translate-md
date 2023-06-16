@@ -1,6 +1,7 @@
 /* eslint-disable new-cap */
 import Spinnies from 'dreidels'
 import chalk from 'chalk'
+import { v4 as uuid } from 'uuid'
 import { type OnProgressCallback, type PromisePool, type PromisePoolError } from '@supercharge/promise-pool'
 import { type PromisePoolExecutor } from '@supercharge/promise-pool/dist/promise-pool-executor'
 
@@ -58,11 +59,17 @@ export const onScreen = (line: string, ...rest: any[]): void => {
 }
 
 export const onSuccess = (line: string): void => {
-  spinnies.add(`success`, { text: line }).succeed({ text: line })
+  const uniqueId = `success-${uuid()}`
+  try {
+    spinnies.add(uniqueId, { text: line }).succeed({ text: line }).remove(uniqueId)
+  } catch (ignored) {}
 }
 
 export const onFail = (line: string): void => {
-  spinnies.add(`fail`, { text: line }).fail(`fail`, { text: line })
+  const uniqueId = `fail-${uuid()}`
+  try {
+    spinnies.add(uniqueId, { text: line }).fail({ text: line }).remove(uniqueId)
+  } catch (ignored) {}
 }
 
 export const ConsoleUi: UiStrategy = {

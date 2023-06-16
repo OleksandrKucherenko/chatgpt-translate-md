@@ -82,9 +82,9 @@ export const reportErrors = async (errors: JobError[], context: Context): Promis
 
   // dump errors to console
   errors
-    .map((e) => ({ file: e.item.source, message: e.message, log: e.item.log }))
+    .map((e) => ({ message: e.message, file: e.item.source, log: e.item.log }))
     .forEach((record) => {
-      log(`errors: %O`, record)
+      log(`error: %O`, record)
     })
 
   throw new Error(`Translated has some errors. Check file ${reportFile} for details.`, {
@@ -101,7 +101,7 @@ export const reportStats = async (from: bigint, context: RichContext): Promise<v
 
   Object.keys(finals.statistics).forEach((key) => {
     const kpi = key as Kpi
-    const dump = utils.inspect(finals.statistics[kpi], { depth: 3 })
+    const dump = utils.inspect(finals.statistics[kpi], { depth: 3, breakLength: 120 })
     onSuccess(`${chalk.white(key)}: ${dump}`)
   })
 }

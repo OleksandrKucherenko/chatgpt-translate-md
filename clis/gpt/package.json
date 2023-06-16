@@ -29,7 +29,8 @@
     "handlebars": "^4.7.7",
     "openai": "^3.2.1",
     "signal-exit": "^4.0.2",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "xxhash-wasm": "^1.0.2"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
