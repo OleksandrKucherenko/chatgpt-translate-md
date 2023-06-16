@@ -112,6 +112,19 @@ export const askGPT = async (text: string, prompt: string, context: JobContext):
   return content
 }
 
+/** Append error information to log file and return the same error for chained calls. */
+export const logError = async <T extends Error>(error: T, context: JobContext): Promise<T> => {
+  context.stats.increment(Kpi.errors, 1)
+  const errorLog = `Error:\n----\n${JSON.stringify(error, null, 2)}\n----\n`
+  if (context.job.log !== undefined) await appendFile(errorLog, context.job.log)
+
+  // TODO (olku): add into error log file hint how to execute tool with
+  //  failed file only, without other files
+  // error.log = context.job.log
+
+  return error
+}
+
 /** Compose log file for each ChatGpt call, used unique UUID. */
 export const askGPTWithLogger = async (text: string, prompt: string, context: JobContext): Promise<string> => {
   const { session } = context.flags
@@ -127,15 +140,7 @@ export const askGPTWithLogger = async (text: string, prompt: string, context: Jo
 
     return content
   } catch (error: any) {
-    context.stats.increment(Kpi.errors, 1)
-    const errorLog = `Error:\n----\n${JSON.stringify(error, null, 2)}\n----\n`
-    await appendFile(errorLog, context.job.log)
-
-    // TODO (olku): add into error log file hint how to execute tool with
-    //  failed file only, without other files
-
-    error.log = context.job.log
-    throw error
+    throw await logError(error, context)
   }
 
   // TODO (olku): generated log file should be displayed to user
@@ -189,7 +194,9 @@ export const translateFile = async (context: JobContext): Promise<TranslateFileR
   if (await isFileExists(destination)) {
     const fileContent = await fs.readFile(destination, `utf-8`)
 
-    if (fileContent === translated) throw new Error(Errors.SameContent)
+    if (fileContent === translated) {
+      throw await logError(new Error(Errors.SameContent), context)
+    }
   }
 
   // write translated content to destination file
