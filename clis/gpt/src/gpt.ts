@@ -4,6 +4,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { PromisePool } from '@supercharge/promise-pool'
 import axios from 'axios'
+import xxhash from 'xxhash-wasm'
 
 import { Dirs, Exits } from '@this/configuration'
 
@@ -12,6 +13,7 @@ import { type ChunkError, type Content, Kpi, type DocumentStrategy, type JobCont
 import { Markdown } from './markdown'
 import { onFail, withUI } from './ui'
 import { createAxiosError } from './createAxiosError'
+import { inspect } from 'node:util'
 
 /** How many chunks process at the same time. */
 export const MAX_CONCURRENCY_CHUNKS = 5
@@ -74,11 +76,19 @@ export const createGptClient = (apiKey: string): gpt.OpenAIApi => {
   return new gpt.OpenAIApi(configuration, BASE_PATH, instance)
 }
 
+/** Calculate quickest hash for chunk */
+export const xxhHash = async (text: string): Promise<string> => {
+  const { h32ToString } = await xxhash()
+
+  return h32ToString(text)
+}
+
 /** Ask openai to do the magic */
 export const askGPT = async (text: string, prompt: string, context: JobContext): Promise<string> => {
+  const chunkHash = await xxhHash(text)
   context.stats.increment(Kpi.calls, 1)
   context.stats.value(Kpi.operations, 1)
-  context.stats.duration(Kpi.responseAt, `${context.job.id}`)
+  context.stats.duration(Kpi.responseAt, `${context.job.id}/${chunkHash}`)
   const openAIApi = createGptClient(context.flags.token)
 
   const query = {
@@ -100,7 +110,7 @@ export const askGPT = async (text: string, prompt: string, context: JobContext):
   const content = choices[0]?.message?.content ?? ``
 
   // extract statistics from response
-  context.stats.duration(Kpi.responseAt, `${context.job.id}`)
+  context.stats.duration(Kpi.responseAt, `${context.job.id}/${chunkHash}`)
   context.stats.increment(Kpi.tokens, totalTokens)
   context.stats.increment(Kpi.usedTokens, totalTokens)
 
@@ -115,7 +125,7 @@ export const askGPT = async (text: string, prompt: string, context: JobContext):
 /** Append error information to log file and return the same error for chained calls. */
 export const logError = async <T extends Error>(error: T, context: JobContext): Promise<T> => {
   context.stats.increment(Kpi.errors, 1)
-  const errorLog = `Error:\n----\n${JSON.stringify(error, null, 2)}\n----\n`
+  const errorLog = `Error:\n----\n${inspect(error, { depth: 1, breakLength: 120 })}\n----\n`
   if (context.job.log !== undefined) await appendFile(errorLog, context.job.log)
 
   // TODO (olku): add into error log file hint how to execute tool with
