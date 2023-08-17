@@ -16,7 +16,8 @@
     "gitleaks:detect": "mkdir -p reports && gitleaks detect --no-banner -l debug --verbose --report-path reports/gitleaks.json --report-format json",
     "gitleaks:protect": "mkdir -p reports && gitleaks protect --staged --no-banner --report-path reports/gitleaks.json --report-format json",
     "build": "yarn workspaces foreach --parallel --recursive --verbose run build",
-    "cleanup": "yarn workspaces foreach --parallel --recursive --verbose run cleanup"
+    "cleanup": "yarn workspaces foreach --parallel --recursive --verbose run cleanup",
+    "verify:env": "env"
   },
   "devDependencies": {
     "@goldstack/utils-typescript-references": "^0.3.7",

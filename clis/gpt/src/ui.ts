@@ -18,8 +18,8 @@ const reportErrorsMessages = <T>(errors?: Array<PromisePoolError<T>>): string =>
     .join(`, `)
 }
 
-export const spinnies = new Spinnies.default()
-// export const spinnies = new Spinnies()
+// export const spinnies = new Spinnies.default()
+export const spinnies = new Spinnies()
 
 export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePool<T> => {
   const { source } = context.job
