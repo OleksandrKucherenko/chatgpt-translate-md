@@ -18,8 +18,13 @@ const reportErrorsMessages = <T>(errors?: Array<PromisePoolError<T>>): string =>
     .join(`, `)
 }
 
-// @ts-expect-error something wrong with package
-export const spinnies = new Spinnies.default()
+// make typescript happy, isBun is runtime variable specific to BUN runtime
+declare let process: {
+  isBun: boolean
+}
+
+// @ts-expect-error something wrong with package, ts-node badly extract the class
+export const spinnies = process.isBun ? new Spinnies() : new Spinnies.default()
 
 export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePool<T> => {
   const { source } = context.job

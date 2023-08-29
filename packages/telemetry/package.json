@@ -6,14 +6,13 @@
   "type": "module",
   "main": "index.ts",
   "workspaces": [
-    "@this/telemetry"
+    "packages/telemetry"
   ],
   "scripts": {
     "build": "rimraf dist && tsc",
     "cleanup": "rimraf dist"
   },
   "dependencies": {
-    "@this/configuration": "*",
     "papaparse": "^5.4.1",
     "stats-lite": "^2.2.0"
   },

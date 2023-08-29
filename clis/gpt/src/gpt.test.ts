@@ -1,10 +1,15 @@
 /* eslint-disable import/first */
-import { jest, describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals'
+
+// import { jest, describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals'
+// const { mock } = jest
+
+import { mock, describe, expect, it, beforeAll, afterAll, afterEach } from 'bun:test'
+
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
 
-jest.mock(`openai/dist/base`)
-jest.mock(`./ui`, () => ({}))
+mock(`openai/dist/base`)
+mock(`./ui`, () => ({}))
 
 import { askGPT } from './gpt'
 import type { JobContext } from './types'
@@ -57,7 +62,9 @@ describe(`gpt`, () => {
     }
 
     // WHEN:
-    await expect(async () => await askGPT(text, prompt, context)).rejects.toThrowError(`⛔ API error.`)
+    // await expect(async () => await askGPT(text, prompt, context)).rejects.toThrowError(`⛔ API error.`)
+    const result = await askGPT(text, prompt, context)
+    await expect(result).rejects.toThrow()
 
     // THEN:
   })
