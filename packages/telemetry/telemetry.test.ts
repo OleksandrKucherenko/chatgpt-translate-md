@@ -1,5 +1,3 @@
-// import { describe, expect, test } from '@jest/globals'
-// import { describe, expect, test, beforeAll, afterAll } from 'bun:test'
 import { metrics } from './telemetry'
 import { type Schema } from './types'
 
@@ -71,9 +69,6 @@ describe(`telemetry`, () => {
     // THEN: statistics are calculated correctly
     expect(Object.fromEntries(data.statistics[Kpi.codes])).toHaveProperty(`502`, 1)
     expect(Object.fromEntries(data.statistics[Kpi.codes])).toHaveProperty(`200`, 32)
-    // expect(Object.fromEntries(data.statistics[Kpi.codes])).toStrictEqual(
-    //   expect.objectContaining({ '200': 32, '502': 1 })
-    // )
   })
 
   test(`should calculate stats - extracted durations`, async () => {
@@ -85,17 +80,6 @@ describe(`telemetry`, () => {
     console.dir(data.statistics, { depth: 3, breakLength: 120 })
 
     // THEN: statistics are calculated correctly
-    // expect(data.statistics[Kpi.responseAt]).toEqual(
-    //   expect.objectContaining({
-    //     units: `milliseconds`,
-    //     min: 4,
-    //     max: 82659,
-    //     avg: 15278.353301515152,
-    //     timeline: expect.any(Array),
-    //     mapping: expect.any(Array),
-    //     count: 33,
-    //   })
-    // )
     expect(data.statistics[Kpi.responseAt]).toHaveProperty(`units`, `milliseconds`)
     expect(data.statistics[Kpi.responseAt]).toHaveProperty(`min`, 4)
     expect(data.statistics[Kpi.responseAt]).toHaveProperty(`max`, 82659)
