@@ -5,7 +5,7 @@
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_dependencies.sh"
 
 dependency bash "5.*.*" "brew install bash"
-dependency curl "7.*.*" "brew install curl"
+dependency curl "[78].*.*" "brew install curl"
 dependency git "2.*.*" "brew install git"
 dependency git-lfs "3.*.*" "brew install git-lfs"
 dependency direnv "2.*.*" "curl -sfL https://direnv.net/install.sh | bash"
@@ -17,8 +17,8 @@ __nvm_version=$(grep "nvm_echo '\(0.39.*\)" "$HOME/.nvm/nvm.sh" | sed "s/nvm_ech
   optional nvm "0.39.*" "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash"
 
 dependency yarn "3.5.*" "yvm list-remote && yarn set version berry"
-dependency node "18.*.*" "nvm install 18 --lts && nvm use 18 --lts"
-dependency corepack "0.17.*" "npm install -g corepack"
+optional node "18.*.*" "nvm install 18 --lts && nvm use 18 --lts"
+dependency corepack "0.*.*" "npm install -g corepack"
 
 # JSON query tool
 dependency jq "1.6" "brew install jq"
@@ -31,7 +31,7 @@ optional xmlstarlet "1.6.*" "brew install xmlstarlet"
 
 # Shell scripts formatting and static analysis
 optional shellcheck "0.9.*" "brew install shellcheck"
-dependency shfmt "3.6.*" "curl -sS https://webinstall.dev/shfmt | bash"
+dependency shfmt "3.*.*" "curl -sS https://webinstall.dev/shfmt | bash"
 
 # GNU versions of command line tools
 dependency ggrep "3.*" "brew install grep"
@@ -39,7 +39,7 @@ dependency gsed "4.*" "brew install gnu-sed"
 dependency timeout "9.*" "brew install coreutils"
 
 # Clouds
-dependency docker "23.*.*" "brew remove docker && brew install --cask docker"
+dependency docker "24.*.*" "brew remove docker && brew install --cask docker"
 
 # certificate generation
 optional mkcert "1.4.*" "brew install mkcert"
@@ -50,7 +50,7 @@ optional mkcert "1.4.*" "brew install mkcert"
 #dependency gcloud "2023.*.*" "brew install --cask google-cloud-sdk"
 
 # Architecture Decision Records (ADRs)
-#dependency adr "3.*.*" "brew install adr-tools" "config"
+optional adr "3.*.*" "brew install adr-tools" "config"
 
 # Prevent secrets from being committed to git
 dependency gitleaks "8.*.*" "brew install gitleaks" "version"
