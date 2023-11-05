@@ -44,6 +44,7 @@ yarn plugin import interactive-tools
 yarn plugin import typescript
 yarn plugin import workspace-tools
 yarn plugin import version
+yarn plugin import https://mskelton.dev/yarn-outdated/v3
 
 # https://yarnpkg.com/getting-started/editor-sdks
 yarn dlx @yarnpkg/sdks vscode

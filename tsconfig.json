@@ -14,8 +14,6 @@
     "lib": ["ES2022", "dom"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "target": "ES2022",
-    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
     "strict": true,
@@ -27,12 +25,14 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "module": "ES2022",
-    "moduleResolution": "node",
     "types": ["node", "jest"],
     "paths": {
       "*": ["node_modules/*", "packages/*", "services/*", "websites/*", "clis/*"]
-    }
+    },
+    "target": "ES2022",
+    "module": "ES2022",
+    "esModuleInterop": true,
+    "moduleResolution": "node"
   },
   "ts-node": {
     "esm": true,

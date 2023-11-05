@@ -18,34 +18,46 @@ export const metrics = (session: string): Telemetry => {
   return {
     /** increment metric, report increment */
     increment(name: string, value: number): void {
-      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},increment,${value}\n`).finally(() => {})
+      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},increment,${value}\n`)
+        .then(() => {})
+        .catch(() => {})
     },
 
     /** decrement metric, report decrement */
     decrement(name: string, value: number): void {
-      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},decrement,${value}\n`).finally(() => {})
+      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},decrement,${value}\n`)
+        .then(() => {})
+        .catch(() => {})
     },
 
     /** report metric value at specific time. */
     value(name: string, value: number): void {
-      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},value,${value}\n`).finally(() => {})
+      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},value,${value}\n`)
+        .then(() => {})
+        .catch(() => {})
     },
 
     /** report impression event at specific time. */
     impression(name: string, payload: any): void {
       const json = Papa.unparse([JSON.stringify(payload)])
-      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},impression,${json}\n`).finally(() => {})
+      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},impression,${json}\n`)
+        .then(() => {})
+        .catch(() => {})
     },
 
     /** report action event at specific time. */
     action(name: string, payload: any): void {
       const json = Papa.unparse([JSON.stringify(payload)])
-      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},action,${json}\n`).finally(() => {})
+      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},action,${json}\n`)
+        .then(() => {})
+        .catch(() => {})
     },
 
     /** At least two calls of this function required. Duration is a distance in time between those two calls. */
     duration(name: string, value: number | string): void {
-      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},duration,${value}\n`).finally(() => {})
+      appendFile(telemetryFile, `${process.hrtime.bigint()},${name},duration,${value}\n`)
+        .then(() => {})
+        .catch(() => {})
     },
 
     /** calculate statistics in specified time range by rules of provided schema. */

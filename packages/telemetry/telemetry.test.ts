@@ -79,7 +79,7 @@ describe(`telemetry`, () => {
 
     // WHEN: calculate statistics, time is in nanoseconds
     const data = await statistics.stats(0n, 2026370565810374n, CurrentSchema)
-    console.dir(data.statistics, { depth: 3, breakLength: 120 })
+    // console.dir(data.statistics, { depth: 3, breakLength: 120 })
 
     // THEN: statistics are calculated correctly
     expect(data.statistics[Kpi.responseAt]).toEqual(
