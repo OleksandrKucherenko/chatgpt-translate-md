@@ -28,7 +28,7 @@ export const Prompts: Questions = {
     message: `Source files, glob or file path (ex. ./**/*.md):`,
   },
   list: {
-    message: `Is source contains a list files/globs:`,
+    message: `Is source represents a list of files/globs:`,
     type: `toggle`,
     active: `yes`,
     inactive: `no`,

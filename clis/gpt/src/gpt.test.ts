@@ -18,6 +18,10 @@ const server = setupServer(
   })
 )
 
+server.events.on(`request:start`, ({ request }) => {
+  console.log(`MSW intercepted:`, request.method, request.url)
+})
+
 describe(`gpt`, () => {
   const fakeSession = `fake-unit-tests-session`
 
