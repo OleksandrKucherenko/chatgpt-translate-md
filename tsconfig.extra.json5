@@ -50,7 +50,7 @@
     "types": ["node", "jest"] /* Type declaration files to be included in compilation. */
   },
   "ts-node": {
-    "esm": true, /* enaled ESM */
+    "esm": true, /* enabled ESM */
     "files": true, /* allow custom TS types loading */
     "experimentalSpecifierResolution": "node" /* allow loading of modules */
   },

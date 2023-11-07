@@ -44,6 +44,7 @@ yarn plugin import interactive-tools
 yarn plugin import typescript
 yarn plugin import workspace-tools
 yarn plugin import version
+yarn plugin import https://mskelton.dev/yarn-outdated/v3
 
 # https://yarnpkg.com/getting-started/editor-sdks
 yarn dlx @yarnpkg/sdks vscode
@@ -86,9 +87,20 @@ yarn cli --cwd ./packages/translate-with-chatgpt \
 # token can be placed into `.secrets/openai_api_token` file and DIRENV will load it
 ```
 
+## How to Publish?
+
+As Homebrew package: https://bharathvaj.me/blog/how-to-publish-your-nodejs-project-on-homebrew
+
+https://github.com/vercel/pkg
+
+```bash
+
+```
+
 ## References
 
 - https://dev.to/mxro/the-ultimate-guide-to-typescript-monorepos-5ap7
 - https://github.com/TypeStrong/ts-node/issues/1709
 - https://blog.ah.technology/a-guide-through-the-wild-wild-west-of-setting-up-a-mono-repo-with-typescript-lerna-and-yarn-ed6a1e5467a
 - https://stackoverflow.com/questions/72380007/what-typescript-configuration-produces-output-closest-to-node-js-18-capabilities
+- https://bharathvaj.me/blog/how-to-publish-your-nodejs-project-on-homebrew

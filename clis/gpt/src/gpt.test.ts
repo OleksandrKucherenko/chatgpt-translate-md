@@ -1,9 +1,10 @@
 /* eslint-disable import/first */
 import { jest, describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals'
-import { rest } from 'msw'
+import 'isomorphic-fetch'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
-jest.mock(`openai/dist/base`)
+// jest.mock(`openai/dist/base`)
 jest.mock(`./ui`, () => ({}))
 
 import { askGPT } from './gpt'
@@ -12,10 +13,14 @@ import { metrics } from '@this/telemetry'
 import { Routes } from '@this/arguments'
 
 const server = setupServer(
-  rest.post(`https://api.openai.com/v1/chat/completions`, async (_req, res, ctx) => {
-    return await res(ctx.status(429), ctx.json({ message: `Rate limit reached for requests` }))
+  http.post(`https://api.openai.com/v1/chat/completions`, () => {
+    return HttpResponse.json({ message: `Rate limit reached for requests` }, { status: 429 })
   })
 )
+
+server.events.on(`request:start`, ({ request }) => {
+  console.log(`MSW intercepted:`, request.method, request.url)
+})
 
 describe(`gpt`, () => {
   const fakeSession = `fake-unit-tests-session`

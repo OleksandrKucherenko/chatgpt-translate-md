@@ -19,7 +19,7 @@ const reportErrorsMessages = <T>(errors?: Array<PromisePoolError<T>>): string =>
 }
 
 // @ts-expect-error something wrong with package
-export const spinnies = new Spinnies.default()
+export const spinnies = new Spinnies.default() as Spinnies
 
 export const withUI = <T>(context: JobContext, pool: PromisePool<T>): PromisePool<T> => {
   const { source } = context.job

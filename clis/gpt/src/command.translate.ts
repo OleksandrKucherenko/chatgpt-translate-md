@@ -26,7 +26,7 @@ export const findFilesByGlob = async (search: string, { cwd, ignore, list }: Fin
 
   const files: string[] = []
 
-  if (list === true) {
+  if (list) {
     if (!fs.existsSync(search)) throw new Error(`File ${search} does not exist`)
     const content = await fs.promises.readFile(search, `utf-8`)
     const searches = content.split(`\n`)
@@ -119,6 +119,7 @@ export const execute = async (context: RichContext): Promise<void> => {
 
   // show some hints to user
   onSuccess(`stats of the pipe: active|processed|total|progress, example: 5|10|100|10.0%`)
+  onSuccess(`processing files: ${forProcessing.length}`)
 
   // do processing of files one by one
   const pool = await PromisePool.for(forProcessing)

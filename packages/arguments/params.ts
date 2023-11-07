@@ -10,7 +10,8 @@ export const Defaults: Predefined = {
   // for boolean values required trick string-to-boolean conversion
   // eslint-disable-next-line no-extra-boolean-cast
   ask: [!Boolean(process.env.CI), true],
-  token: [process.env.OPENAI_API_TOKEN, `<token>`],
+  token: [process.env.OPENAI_API_TOKEN, process.env.OPENAI_API_KEY, `<token>`],
+  organization: [process.env.OPENAI_ORGANIZATION, process.env.OPENAI_ORG_ID, ``],
   source: [`**/*.md`, `<glob>`],
   ignore: [`**/*.ukrainian.md`, `<glob>`],
   language: [`Ukrainian`, `<language>`],
@@ -28,7 +29,7 @@ export const Prompts: Questions = {
     message: `Source files, glob or file path (ex. ./**/*.md):`,
   },
   list: {
-    message: `Is source contains a list files/globs:`,
+    message: `Is source represents a list of files/globs:`,
     type: `toggle`,
     active: `yes`,
     inactive: `no`,
@@ -50,6 +51,9 @@ export const Prompts: Questions = {
   },
   token: {
     message: `OpenAI ChatGPT API Access Token (sk-xxxx):`,
+  },
+  organization: {
+    message: `OpenAI Organization ID (org-xxxx or leave it empty):`,
   },
   cwd: SuggestDirs.from({
     message: `Current working directory (ex. ~/project, ../project, ./project):`,
@@ -87,6 +91,11 @@ export const Options: Switches = {
     describe: `OpenAI ChatGPT API Access Token`,
     // add description to mask real secured value
     defaultDescription: `$OPENAI_API_TOKEN`,
+  }),
+  organization: Secured.from({
+    alias: [`org`, `o`],
+    describe: `OpenAI Organization ID`,
+    defaultDescription: `$OPENAI_ORGANIZATION`,
   }),
   ask: {
     alias: [`interactive`],

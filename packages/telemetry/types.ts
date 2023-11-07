@@ -1,10 +1,10 @@
 export interface Metrics {
-  impression: (name: string, payload: any) => void
-  action: (name: string, payload: any) => void
-  increment: (name: string, value: number) => void
-  decrement: (name: string, value: number) => void
-  value: (name: string, value: number) => void
-  duration: (name: string, value: number | string) => void
+  impression: (name: string, payload: any) => Metrics
+  action: (name: string, payload: any) => Metrics
+  increment: (name: string, value: number) => Metrics
+  decrement: (name: string, value: number) => Metrics
+  value: (name: string, value: number) => Metrics
+  duration: (name: string, value: number | string) => Metrics
 }
 
 export type Actions = keyof Metrics

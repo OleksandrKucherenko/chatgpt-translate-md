@@ -1,18 +1,15 @@
-import * as gpt from 'openai'
-import { BASE_PATH } from 'openai/dist/base'
+import OpenAI from 'openai'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { PromisePool } from '@supercharge/promise-pool'
-import axios from 'axios'
 import xxhash from 'xxhash-wasm'
 
 import { Dirs, Exits } from '@this/configuration'
 
 import { appendFile, createFile, isFileExists } from './utils'
-import { type ChunkError, type Content, Kpi, type DocumentStrategy, type JobContext } from './types'
+import { type ChunkError, type Content, type DocumentStrategy, type JobContext, Kpi, Http } from './types'
 import { Markdown } from './markdown'
 import { onFail, withUI } from './ui'
-import { createAxiosError } from './createAxiosError'
 import { inspect } from 'node:util'
 
 /** How many chunks process at the same time. */
@@ -25,6 +22,7 @@ enum Errors {
   Unsupported = `⛔ Unsupported file type.`,
   ApiError = `⛔ API error.`,
   Failed = `⛔ Translation failed.`,
+  Unknown = `⛔ Unknown error.`,
 }
 
 /** https://platform.openai.com/docs/guides/error-codes */
@@ -37,16 +35,19 @@ enum Errors {
 //   429: [
 //     { message: "Rate limit reached for requests",	cause: "You are sending requests too quickly.", solution: "Pace your requests. Read the Rate limit guide." },
 //     { message: "You exceeded your current quota, please check your plan and billing details",	cause: "You have hit your maximum monthly spend (hard limit) which you can view in the account billing section.", solution: "Apply for a quota increase." },
-//     { message: "The engine is currently overloaded, please try again later",	cause: "Our servers are experiencing high traffic.", solution: "Please retry your requests after a brief wait." },
 //   ],
 //   500: [
 //     { message: "The server had an error while processing your request",	cause: "Issue on our servers.", solution: "Retry your request after a brief wait and contact us if the issue persists. Check the status page." },
 //   ],
+//   503: [
+//     { message: "The engine is currently overloaded, please try again later",	cause: "Our servers are experiencing high traffic.", solution: "Please retry your requests after a brief wait." },
+//   ],
 // }
 
-const MODEL = `gpt-3.5-turbo`
-const MSG_SYSTEM_PROMPT = { role: gpt.ChatCompletionRequestMessageRoleEnum.System }
-const MSG_USER_CONTENT = { role: gpt.ChatCompletionRequestMessageRoleEnum.User }
+const MODEL_GPT_3_5_TURBO = `gpt-3.5-turbo`
+// const MODEL_GPT_3_5_TURBO_16K = `gpt-3.5-turbo-16k`
+// const MODEL_GPT_4 = `gpt-4`
+// const MODEL_GPT_4_32K = `gpt-4-32k`
 
 interface TranslateResult {
   translated: string
@@ -66,60 +67,77 @@ export const selectStrategy = (file: string): DocumentStrategy => {
 }
 
 /** Create ChatGPT client with small configuration changes. */
-export const createGptClient = (apiKey: string): gpt.OpenAIApi => {
-  const configuration = new gpt.Configuration({ apiKey })
+export const createGptClient = (apiKey: string): OpenAI => {
+  // apiKey <~ OPENAI_API_KEY
+  // organization <~ OPENAI_ORG_ID
 
-  // NOTE (olku): for some unknown reason OpenAPI sdk ignores this configuration
-  // do not raise exception on non-2xx responses
-  const instance = axios.create({ validateStatus: () => true })
-
-  return new gpt.OpenAIApi(configuration, BASE_PATH, instance)
+  return new OpenAI({
+    apiKey,
+    // baseURL: `https://api.openai.com/v1`,
+    // timeout, maxRetries,
+  })
 }
 
-/** Calculate quickest hash for chunk */
+/** Calculate the quickest hash for chunk */
 export const xxhHash = async (text: string): Promise<string> => {
   const { h32ToString } = await xxhash()
 
   return h32ToString(text)
 }
 
+const EMPTY_COMPLETION: Partial<OpenAI.ChatCompletion> = {
+  usage: { total_tokens: 0, completion_tokens: 0, prompt_tokens: 0 },
+  choices: [],
+}
+
 /** Ask openai to do the magic */
 export const askGPT = async (text: string, prompt: string, context: JobContext): Promise<string> => {
-  const chunkHash = await xxhHash(text)
-  context.stats.increment(Kpi.calls, 1)
-  context.stats.value(Kpi.operations, 1)
-  context.stats.duration(Kpi.responseAt, `${context.job.id}/${chunkHash}`)
-  const openAIApi = createGptClient(context.flags.token)
+  const uniqueHash = `${context.job.id}/${await xxhHash(text)}`
 
-  const query = {
-    model: MODEL,
+  const { increment, value, duration } = context.stats
+  increment(Kpi.calls, 1)
+  value(Kpi.operations, 1)
+  duration(Kpi.responseAt, uniqueHash)
+
+  const query: OpenAI.ChatCompletionCreateParamsNonStreaming = {
+    model: MODEL_GPT_3_5_TURBO,
     messages: [
-      { ...MSG_SYSTEM_PROMPT, content: prompt },
-      { ...MSG_USER_CONTENT, content: text },
+      { role: `system`, content: prompt },
+      { role: `user`, content: text },
     ],
     top_p: 0.5,
   }
+  const options = {}
 
-  const response = await openAIApi.createChatCompletion(query, { validateStatus: () => true })
-  context.stats.value(Kpi.codes, response.status)
+  let data = EMPTY_COMPLETION
+  try {
+    const openai = createGptClient(context.flags.token)
+    const completion = await openai.chat.completions.create(query, options)
+    value(Kpi.codes, Http.OK)
 
-  const data: gpt.CreateChatCompletionResponse = response.data ?? { usage: { total_tokens: 0 }, choices: [] }
-  const usage = data.usage ?? { total_tokens: 0 }
-  const choices = data.choices ?? []
-  const totalTokens = usage.total_tokens ?? 0
-  const content = choices[0]?.message?.content ?? ``
+    data = { ...EMPTY_COMPLETION, ...completion }
+    const content = (data.choices ?? [])[0]?.message?.content ?? ``
+    if (content === ``) throw new Error(Errors.EmptyContent)
 
-  // extract statistics from response
-  context.stats.duration(Kpi.responseAt, `${context.job.id}/${chunkHash}`)
-  context.stats.increment(Kpi.tokens, totalTokens)
-  context.stats.increment(Kpi.usedTokens, totalTokens)
+    return content
+  } catch (error: any) {
+    value(Kpi.codes, error?.status ?? Http.NOT_IMPLEMENTED)
 
-  // raise errors on non-2xx responses or empty content
-  if (!(response.status >= 200 && response.status < 300))
-    throw new Error(Errors.ApiError, { cause: createAxiosError(response) })
-  if (content === ``) throw new Error(Errors.EmptyContent)
+    // raise errors on non-2xx responses or empty content
+    if (error instanceof OpenAI.APIError) {
+      throw new Error(Errors.ApiError, { cause: error })
+    }
 
-  return content
+    // Non-OpenAI errors
+    throw error
+  } finally {
+    const totalTokens = data?.usage?.total_tokens ?? 0
+
+    // extract statistics from response
+    duration(Kpi.responseAt, uniqueHash)
+    increment(Kpi.tokens, totalTokens)
+    increment(Kpi.usedTokens, totalTokens)
+  }
 }
 
 /** Append error information to log file and return the same error for chained calls. */
@@ -139,7 +157,7 @@ export const logError = async <T extends Error>(error: T, context: JobContext): 
 export const askGPTWithLogger = async (text: string, prompt: string, context: JobContext): Promise<string> => {
   const { session } = context.flags
   context.job.log = path.resolve(Dirs.local, session, `${context.job.id}.log`)
-  const logs = `${MODEL}:\n----\n${prompt}\n----\n${text}\n----\n`
+  const logs = `${MODEL_GPT_3_5_TURBO}:\n----\n${prompt}\n----\n${text}\n----\n`
 
   await createFile(logs, context.job.log)
 

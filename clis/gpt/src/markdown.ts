@@ -23,13 +23,14 @@ export const composePrompt = (context: JobContext): string => {
   const variants = [path.resolve(Dirs.root, fileName), path.resolve(Dirs.assets, fileName), path.resolve(fileName)]
   const foundPath = variants.find((p) => fs.existsSync(p))
   if (foundPath === undefined) {
-    throw new Error(`Template file not found by pathes: ${variants.join(`, `)}`)
+    throw new Error(`Template file not found by path's: ${variants.join(`, `)}`)
   }
 
   const content = fs.readFileSync(foundPath, `utf-8`)
   const template = Handlebars.compile(content)
 
-  return template(context).trim()
+  const prompt = template({ context })
+  return prompt.trim()
 }
 
 const optimizeChunks = (chunks: string[], options?: Options): string[] => {
