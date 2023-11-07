@@ -43,6 +43,7 @@ describe(`gpt`, () => {
     const prompt = `dummy prompt`
     const context: JobContext = {
       flags: {
+        organization: ``,
         session: fakeSession,
         cwd: `string`,
         source: `string`,
