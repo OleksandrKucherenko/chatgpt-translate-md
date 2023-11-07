@@ -4,7 +4,7 @@ import { appendFile } from 'node:fs/promises'
 import Papa from 'papaparse'
 
 import { Dirs } from '@this/configuration'
-import { type Telemetry, type TimeRecord, type Finals, type Schema } from './types'
+import { type Telemetry, type TimeRecord, type Finals, type Schema, type Metrics } from './types'
 import { stats } from './functions'
 
 export const metrics = (session: string): Telemetry => {
@@ -17,47 +17,59 @@ export const metrics = (session: string): Telemetry => {
 
   return {
     /** increment metric, report increment */
-    increment(name: string, value: number): void {
+    increment(name: string, value: number): Metrics {
       appendFile(telemetryFile, `${process.hrtime.bigint()},${name},increment,${value}\n`)
         .then(() => {})
         .catch(() => {})
+
+      return this
     },
 
     /** decrement metric, report decrement */
-    decrement(name: string, value: number): void {
+    decrement(name: string, value: number): Metrics {
       appendFile(telemetryFile, `${process.hrtime.bigint()},${name},decrement,${value}\n`)
         .then(() => {})
         .catch(() => {})
+
+      return this
     },
 
     /** report metric value at specific time. */
-    value(name: string, value: number): void {
+    value(name: string, value: number): Metrics {
       appendFile(telemetryFile, `${process.hrtime.bigint()},${name},value,${value}\n`)
         .then(() => {})
         .catch(() => {})
+
+      return this
     },
 
     /** report impression event at specific time. */
-    impression(name: string, payload: any): void {
+    impression(name: string, payload: any): Metrics {
       const json = Papa.unparse([JSON.stringify(payload)])
       appendFile(telemetryFile, `${process.hrtime.bigint()},${name},impression,${json}\n`)
         .then(() => {})
         .catch(() => {})
+
+      return this
     },
 
     /** report action event at specific time. */
-    action(name: string, payload: any): void {
+    action(name: string, payload: any): Metrics {
       const json = Papa.unparse([JSON.stringify(payload)])
       appendFile(telemetryFile, `${process.hrtime.bigint()},${name},action,${json}\n`)
         .then(() => {})
         .catch(() => {})
+
+      return this
     },
 
     /** At least two calls of this function required. Duration is a distance in time between those two calls. */
-    duration(name: string, value: number | string): void {
+    duration(name: string, value: number | string): Metrics {
       appendFile(telemetryFile, `${process.hrtime.bigint()},${name},duration,${value}\n`)
         .then(() => {})
         .catch(() => {})
+
+      return this
     },
 
     /** calculate statistics in specified time range by rules of provided schema. */

@@ -13,6 +13,7 @@
     "cli": "yarn workspace cli-gpt ts-node src/index.ts",
     "eslint:fix": "DEBUG=eslint:cli-engine eslint --fix --ext .ts,.tsx,.js,.jsx .",
     "prettier:check": "prettier --check .",
+    "prettier:fix": "prettier --write --check .",
     "gitleaks:detect": "mkdir -p reports && gitleaks detect --no-banner -l debug --verbose --report-path reports/gitleaks.json --report-format json",
     "gitleaks:protect": "mkdir -p reports && gitleaks protect --staged --no-banner --report-path reports/gitleaks.json --report-format json",
     "build": "yarn workspaces foreach --parallel --recursive --verbose run build",

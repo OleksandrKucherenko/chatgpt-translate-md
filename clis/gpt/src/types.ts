@@ -1,6 +1,7 @@
 import { type RichContext } from '@this/arguments'
 import { type PromisePoolError } from '@supercharge/promise-pool'
 import { type Schema } from '@this/telemetry'
+import { constants } from 'node:http2'
 
 export enum Kpi {
   /** reported by API usage of tokens */
@@ -86,3 +87,13 @@ export interface UiStrategy {
   readonly title: string
   readonly description: string
 }
+
+type PickStartsWith<T extends object, S extends string> = {
+  [K in keyof T as K extends `${S}${infer R}` ? R : never]: T[K]
+}
+
+export const Http = Object.fromEntries(
+  Object.entries(constants)
+    .filter(([key]) => key.startsWith(`HTTP_STATUS_`))
+    .map(([key, value]) => [key.replace(`HTTP_STATUS_`, ``), value])
+) as PickStartsWith<typeof constants, `HTTP_STATUS_`>

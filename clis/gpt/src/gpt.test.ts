@@ -4,7 +4,7 @@ import 'isomorphic-fetch'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
-jest.mock(`openai/dist/base`)
+// jest.mock(`openai/dist/base`)
 jest.mock(`./ui`, () => ({}))
 
 import { askGPT } from './gpt'
