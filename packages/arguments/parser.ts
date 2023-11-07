@@ -15,7 +15,7 @@ import { FROM_ARGS } from './utils'
 export const GROUP_GLOBAL = `Global options:`
 
 export const MASK_OPTIONS: MaskData.JsonMask2Configs = {
-  passwordFields: [`token`, `t`, `flags.token`, `flags.t`, `token[0]`],
+  passwordFields: [`token`, `t`, `flags.token`, `flags.t`, `token[0]`, `token[1]`],
   passwordMaskOptions: { maskWith: `*`, unmaskedStartCharacters: 3, unmaskedEndCharacters: 4 },
 }
 
