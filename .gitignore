@@ -1,6 +1,9 @@
 # do not allow commit of secrets
 .secrets/
 
+# editor state
+.idea/
+
 # Yarn 3 files
 .pnp.*
 .yarn/*
@@ -11,12 +14,14 @@
 !.yarn/versions
 
 # node_modules and build files
+node_modules
 node_modules/
 dist/
 coverage/
 build/
 .cache/
 reports/
+*.tsbuildinfo
 
 # backup files
 *.bak

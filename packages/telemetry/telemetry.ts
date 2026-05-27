@@ -4,8 +4,8 @@ import { appendFile } from 'node:fs/promises'
 import Papa from 'papaparse'
 
 import { Dirs } from '@this/configuration'
-import { type Telemetry, type TimeRecord, type Finals, type Schema, type Metrics } from './types'
-import { stats } from './functions'
+import { type Telemetry, type TimeRecord, type Finals, type Schema, type Metrics } from './types.js'
+import { stats } from './functions.js'
 
 export const metrics = (session: string): Telemetry => {
   // compose output directory for session
@@ -13,7 +13,9 @@ export const metrics = (session: string): Telemetry => {
 
   // create telemetry CSV file if it not exists yet
   const telemetryFile = path.resolve(Dirs.local, session, `telemetry.csv`)
-  fs.existsSync(telemetryFile) || fs.writeFileSync(telemetryFile, `timestamp,name,action,value\n`)
+  if (!fs.existsSync(telemetryFile)) {
+    fs.writeFileSync(telemetryFile, `timestamp,name,action,value\n`)
+  }
 
   return {
     /** increment metric, report increment */

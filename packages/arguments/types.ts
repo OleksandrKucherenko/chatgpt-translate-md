@@ -2,9 +2,9 @@
 
 import type prompts from 'prompts'
 import { type Choice } from 'prompts'
-import type yargs from 'yargs'
-import { type AllFlags, type Routes } from './routes'
-import { AUTOSUGGESTION_CHOICES, autoSuggestDirectories } from './utils'
+import type { Options } from 'yargs'
+import { type AllFlags, type Routes } from './routes.js'
+import { AUTOSUGGESTION_CHOICES, autoSuggestDirectories } from './utils.js'
 
 type Simple = string | number | symbol
 
@@ -111,7 +111,7 @@ export class SuggestDirs implements Question {
   }
 }
 
-export interface Switch extends yargs.Options {
+export interface Switch extends Options {
   describe: string
 }
 
@@ -150,7 +150,6 @@ export type Switches = Partial<Record<`${AllFlags}`, Switch>>
 
 export type Commands = Record<`${Routes}`, Command>
 
-// eslint-disable-next-line @typescript-eslint/no-namespace,@typescript-eslint/no-unused-vars
 export interface Arguments extends Record<`${AllFlags}`, Resolved> {
   ask: boolean
   command: Routes

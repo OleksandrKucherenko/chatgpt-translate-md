@@ -1,11 +1,10 @@
-/* eslint-disable new-cap */
 import Spinnies from 'dreidels'
 import chalk from 'chalk'
 import { v4 as uuid } from 'uuid'
 import { type OnProgressCallback, type PromisePool, type PromisePoolError } from '@supercharge/promise-pool'
 import { type PromisePoolExecutor } from '@supercharge/promise-pool/dist/promise-pool-executor'
 
-import { type JobContext, type UiStrategy } from './types'
+import { type JobContext, type UiStrategy } from './types.js'
 
 /** Extract cause from the errors array */
 const reportErrorsMessages = <T>(errors?: Array<PromisePoolError<T>>): string => {
@@ -62,14 +61,14 @@ export const onSuccess = (line: string): void => {
   const uniqueId = `success-${uuid()}`
   try {
     spinnies.add(uniqueId, { text: line }).succeed({ text: line }).remove(uniqueId)
-  } catch (ignored) {}
+  } catch {}
 }
 
 export const onFail = (line: string): void => {
   const uniqueId = `fail-${uuid()}`
   try {
     spinnies.add(uniqueId, { text: line }).fail({ text: line }).remove(uniqueId)
-  } catch (ignored) {}
+  } catch {}
 }
 
 export const ConsoleUi: UiStrategy = {

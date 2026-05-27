@@ -9,10 +9,10 @@ import chalk from 'chalk'
 import { Dirs, dumpD, Exits, log } from '@this/configuration'
 import type { Context, RichContext, TypedArguments } from '@this/arguments'
 
-import { translateFile } from './gpt'
-import { createFile } from './utils'
-import { type Job, type JobError, Statistics, type Kpi } from './types'
-import { spinnies, onSuccess } from './ui'
+import { translateFile } from './gpt.js'
+import { createFile } from './utils.js'
+import { type Job, type JobError, Statistics, type Kpi } from './types.js'
+import { spinnies, onSuccess } from './ui.js'
 
 type FindOptions = Pick<TypedArguments, `cwd` | `ignore` | `list`>
 type DestinationOptions = Pick<TypedArguments, `overwrite` | `language` | `cwd` | `session`>

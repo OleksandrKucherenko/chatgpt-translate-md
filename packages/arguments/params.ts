@@ -2,14 +2,13 @@ import path from 'node:path'
 import { v4 as uuid } from 'uuid'
 
 import { Dirs } from '@this/configuration'
-import { GlobalFlags, TranslateFlags } from './routes'
-import { type Commands, type Predefined, type Questions, Secured, SuggestDirs, type Switches } from './types'
+import { GlobalFlags, TranslateFlags } from './routes.js'
+import { type Commands, type Predefined, type Questions, Secured, SuggestDirs, type Switches } from './types.js'
 
 /** Values of the parameters extracted from global environment. */
 export const Defaults: Predefined = {
   // for boolean values required trick string-to-boolean conversion
-  // eslint-disable-next-line no-extra-boolean-cast
-  ask: [!Boolean(process.env.CI), true],
+  ask: [!process.env.CI, true],
   token: [process.env.OPENAI_API_TOKEN, process.env.OPENAI_API_KEY, `<token>`],
   organization: [process.env.OPENAI_ORGANIZATION, process.env.OPENAI_ORG_ID, ``],
   source: [`**/*.md`, `<glob>`],

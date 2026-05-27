@@ -2,7 +2,7 @@
   "name": "gpt",
   "private": true,
   "license": "private",
-  "packageManager": "yarn@3.5.0",
+  "packageManager": "yarn@4.15.0",
   "workspaces": [
     "packages/*",
     "clis/*",
@@ -10,58 +10,54 @@
     "websites/*"
   ],
   "scripts": {
-    "cli": "yarn workspace cli-gpt ts-node src/index.ts",
-    "eslint:fix": "DEBUG=eslint:cli-engine eslint --fix --ext .ts,.tsx,.js,.jsx .",
-    "prettier:check": "prettier --check .",
-    "prettier:fix": "prettier --write --check .",
+    "cli": "yarn workspace cli-gpt dev",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format:check": "oxfmt --check --ignore-path .oxfmtignore .",
+    "format:fix": "oxfmt --write --ignore-path .oxfmtignore .",
     "gitleaks:detect": "mkdir -p reports && gitleaks detect --no-banner -l debug --verbose --report-path reports/gitleaks.json --report-format json",
     "gitleaks:protect": "mkdir -p reports && gitleaks protect --staged --no-banner --report-path reports/gitleaks.json --report-format json",
-    "build": "yarn workspaces foreach --parallel --recursive --verbose run build",
+    "build": "yarn workspaces foreach --recursive --topological-dev --verbose run build",
     "cleanup": "yarn workspaces foreach --parallel --recursive --verbose run cleanup",
-    "test": "yarn jest --collect-coverage"
+    "test": "vitest run --coverage",
+    "test:ui": "vitest --ui --watch --coverage --api.port 51204 --api.host 0.0.0.0 --api.allowWrite=false --api.allowExec=false --open=false",
+    "typecheck:native": "tsgo --project tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "@goldstack/utils-typescript-references": "^0.3.9",
-    "@jest/globals": "^29.7.0",
-    "@tsconfig/node18": "^18.2.2",
-    "@types/eslint": "^8.44.6",
-    "@types/node": "^18.18.8",
-    "@types/prettier": "^3.0.0",
-    "@types/uuid": "^9.0.6",
-    "@typescript-eslint/eslint-plugin": "^6.10.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "eslint": "^8.53.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-config-standard-with-typescript": "^39.1.1",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-n": "^16.2.0",
-    "eslint-plugin-prettier": "^5.0.1",
-    "eslint-plugin-promise": "^6.1.1",
-    "husky": "^8.0.3",
-    "jest": "^29.7.0",
+    "@goldstack/utils-typescript-references": "^0.3.30",
+    "@tsconfig/node24": "^24.0.4",
+    "@types/node": "^25.9.1",
+    "@types/uuid": "^11.0.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260526.1",
+    "@vitest/coverage-v8": "^4.1.7",
+    "@vitest/ui": "^4.1.7",
+    "husky": "^9.1.7",
     "json5": "^2.2.3",
-    "lint-staged": "^15.0.2",
-    "prettier": "^3.0.3",
-    "rimraf": "^5.0.5",
-    "ts-jest": "^29.1.1",
-    "ts-jest-mock-import-meta": "^1.1.0",
-    "ts-node": "^10.9.1",
-    "tslib": "^2.6.2",
-    "typescript": "^5.2.2",
-    "uuid": "^9.0.1"
+    "lint-staged": "^17.0.5",
+    "oxfmt": "^0.52.0",
+    "oxlint": "^1.67.0",
+    "rimraf": "^6.1.3",
+    "tslib": "^2.8.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "uuid": "^14.0.0",
+    "vitest": "^4.1.7"
   },
   "engines": {
-    "node": ">=18.0.0 <19.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "volta": {
-    "node": "18.18.2"
+    "node": "24.16.0",
+    "yarn": "4.15.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "oxlint --fix",
+      "oxfmt --write --ignore-path .oxfmtignore"
+    ],
+    "*.{json,jsonc,md,yml,yaml}": "oxfmt --write --ignore-path .oxfmtignore"
   },
   "dependencies": {
-    "cli-gpt": "*"
-  },
-  "dependenciesMeta": {
-    "ts-node@10.9.1": {
-      "unplugged": true
-    }
+    "cli-gpt": "workspace:^"
   }
 }

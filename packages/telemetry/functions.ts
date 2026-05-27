@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-
 import * as sl from 'stats-lite'
-import { type TimeRecord, type TRecord, type Operations, type Series, type Schema, type Finals } from './types'
+import { type TimeRecord, type TRecord, type Operations, type Series, type Schema, type Finals } from './types.js'
 import { dumpD, logD } from '@this/configuration'
 
 export const polarity = (item: TimeRecord): object | number | string =>
@@ -80,8 +78,7 @@ export const statisticsFn = (operation: Operations): StatFunc => {
     case `percentile`:
       return (numbers: number[]) => sl.percentile(numbers, 0.95)
     case `frequency`:
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      return (numbers: number[]) => numbers.reduce((acc, e) => acc.set(e, (acc.get(e) || 0) + 1), new Map())
+      return (numbers: number[]) => numbers.reduce((acc, e) => acc.set(e, (acc.get(e) ?? 0) + 1), new Map())
     case `range`:
       return (_numbers: number[], items: TRecord[]) => {
         // find min and max timestamps in items

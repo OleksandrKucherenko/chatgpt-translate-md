@@ -1,4 +1,4 @@
-import type { Arguments } from './types'
+import type { Arguments } from './types.js'
 import { type Telemetry } from '@this/telemetry'
 
 export interface TypedArguments extends Arguments {
@@ -19,7 +19,6 @@ export interface Context {
   flags: TypedArguments
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Storage {
   // TODO (olku): add database/storage specific context
 }

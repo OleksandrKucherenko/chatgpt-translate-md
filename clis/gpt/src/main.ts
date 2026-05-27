@@ -5,9 +5,9 @@ import { emitter, Events } from '@this/gc'
 import { type Context, type RichContext, processArguments, Routes, mask } from '@this/arguments'
 import { Dirs, dumpD, Exits } from '@this/configuration'
 import { metrics } from '@this/telemetry'
-import { execute as executeTranslate } from './command.translate'
-import { createFile } from './utils'
-import { onSuccess } from './ui'
+import { execute as executeTranslate } from './command.translate.js'
+import { createFile } from './utils.js'
+import { onSuccess } from './ui.js'
 
 export const initialize = async (args: string[]): Promise<void> => {
   const context: Context = await processArguments(args)

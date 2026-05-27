@@ -1,6 +1,6 @@
 import { environmentFiles, log, logD } from '@this/configuration'
 import { critical, emitter, Events, safe } from '@this/gc'
-import { initialize, main } from './main'
+import { initialize, main } from './main.js'
 
 log(`loaded environment files: %O`, environmentFiles())
 logD(`node version: %o`, process.versions.node)

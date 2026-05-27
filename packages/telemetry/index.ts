@@ -1,3 +1,3 @@
-export * from './telemetry'
-export * from './functions'
-export * from './types'
+export * from './telemetry.js'
+export * from './functions.js'
+export * from './types.js'

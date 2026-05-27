@@ -1,41 +1,37 @@
-/* eslint-disable import/first */
-import { jest, describe, expect, it, beforeAll, afterAll, afterEach } from '@jest/globals'
-import 'isomorphic-fetch'
-import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
-
-// jest.mock(`openai/dist/base`)
-jest.mock(`./ui`, () => ({}))
-
-import { askGPT } from './gpt'
-import type { JobContext } from './types'
+import { describe, expect, it, vi } from 'vitest'
+import { askGPT } from './gpt.js'
+import type { JobContext } from './types.js'
 import { metrics } from '@this/telemetry'
-import { Routes } from '@this/arguments'
+import type { Routes } from '@this/arguments'
 
-const server = setupServer(
-  http.post(`https://api.openai.com/v1/chat/completions`, () => {
-    return HttpResponse.json({ message: `Rate limit reached for requests` }, { status: 429 })
-  })
-)
+vi.mock(`./ui.js`, () => ({}))
+vi.mock(`openai`, () => {
+  class APIError extends Error {
+    status: number
 
-server.events.on(`request:start`, ({ request }) => {
-  console.log(`MSW intercepted:`, request.method, request.url)
+    constructor(status: number, message: string) {
+      super(message)
+      this.status = status
+    }
+  }
+
+  class OpenAI {
+    static APIError = APIError
+
+    chat = {
+      completions: {
+        create: async (): Promise<never> => {
+          throw new APIError(429, `Rate limit reached for requests`)
+        },
+      },
+    }
+  }
+
+  return { __esModule: true, default: OpenAI }
 })
 
 describe(`gpt`, () => {
   const fakeSession = `fake-unit-tests-session`
-
-  beforeAll(() => {
-    server.listen()
-  })
-
-  afterEach(() => {
-    server.resetHandlers()
-  })
-
-  afterAll(() => {
-    server.close()
-  })
 
   it(`should raise custom error on API error 429`, async () => {
     // GIVEN: all dummy values, we are test axios/sdk configuration
@@ -55,7 +51,7 @@ describe(`gpt`, () => {
         token: `string`,
         template: `string`,
         ask: false,
-        command: Routes.translate,
+        command: `translate` as Routes,
         debug: false,
       },
       job: { id: `fake-job-id`, source: ``, destination: ``, language: `` },
@@ -63,7 +59,7 @@ describe(`gpt`, () => {
     }
 
     // WHEN:
-    await expect(async () => await askGPT(text, prompt, context)).rejects.toThrowError(`⛔ API error.`)
+    await expect(async () => await askGPT(text, prompt, context)).rejects.toThrow(`⛔ API error.`)
 
     // THEN:
   })

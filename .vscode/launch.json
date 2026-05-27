@@ -10,7 +10,7 @@
       "name": "Translation - Help",
       "skipFiles": ["<node_internals>/**"],
       "runtimeExecutable": "node",
-      "runtimeArgs": ["--loader=ts-node/esm", "--experimental-specifier-resolution=node"],
+      "runtimeArgs": ["--import", "tsx"],
       "cwd": "${workspaceRoot}",
       "args": ["--help"],
       "program": "${workspaceFolder}/clis/gpt/src/index.ts",
@@ -26,8 +26,7 @@
       "name": "Translation - List of files",
       "skipFiles": ["<node_internals>/**"],
       "runtimeExecutable": "node",
-      "runtimeVersion": "18.15.0",
-      "runtimeArgs": ["--loader=ts-node/esm", "--experimental-specifier-resolution=node"],
+      "runtimeArgs": ["--import", "tsx"],
       "cwd": "${workspaceRoot}",
       "args": [
         "--source",

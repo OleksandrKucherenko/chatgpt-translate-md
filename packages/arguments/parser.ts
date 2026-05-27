@@ -1,4 +1,5 @@
 import yargs from 'yargs'
+import { type Argv, type ArgumentsCamelCase } from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import chalk from 'chalk'
 import prompts, { type Choice } from 'prompts'
@@ -6,11 +7,11 @@ import MaskData from 'maskdata'
 
 import { dumpD, log, logW, Exits } from '@this/configuration'
 
-import { Defaults, Options, Prompts, Yargs } from './params'
-import { type Command, type Extras, type Predefined, type Question, type Switch } from './types'
-import { type AllFlags, ApplicationName, ApplicationVersion, GlobalFlags, Routes } from './routes'
-import { type Context, type TypedArguments } from './context'
-import { FROM_ARGS } from './utils'
+import { Defaults, Options, Prompts, Yargs } from './params.js'
+import { type Command, type Extras, type Predefined, type Question, type Switch } from './types.js'
+import { type AllFlags, ApplicationName, ApplicationVersion, GlobalFlags, Routes } from './routes.js'
+import { type Context, type TypedArguments } from './context.js'
+import { FROM_ARGS } from './utils.js'
 
 export const GROUP_GLOBAL = `Global options:`
 
@@ -58,7 +59,7 @@ const resolveOption = (name: AllFlags, option: Switch, defaults: Predefined, ext
 }
 
 /** Configure yargs parser with the commands definitions. */
-const configureCommands = (parser: yargs.Argv, defaults = Defaults, commands = Yargs): yargs.Argv => {
+const configureCommands = (parser: Argv, defaults = Defaults, commands = Yargs): Argv => {
   dumpD(`defaults %O and commands %O`, mask(defaults), commands)
 
   let mutableParser = parser
@@ -81,7 +82,7 @@ const configureCommands = (parser: yargs.Argv, defaults = Defaults, commands = Y
       .filter(Boolean) as Array<[string, Switch]>
     const flags = Object.fromEntries(entries)
 
-    mutableParser = mutableParser.command(names, description, flags, (argv) => {
+    mutableParser = mutableParser.command(names, description, flags, (argv: ArgumentsCamelCase) => {
       argv.command = command
     })
   })
@@ -90,7 +91,7 @@ const configureCommands = (parser: yargs.Argv, defaults = Defaults, commands = Y
 }
 
 /** Configure yargs parser with the global options/flags/switches. */
-const configureGlobalOptions = (parser: yargs.Argv, defaults = Defaults, options = Options): yargs.Argv => {
+const configureGlobalOptions = (parser: Argv, defaults = Defaults, options = Options): Argv => {
   dumpD(`defaults %O and options %O`, mask(defaults), options)
 
   let mutableParser = parser
@@ -172,7 +173,7 @@ export const confirmArguments = async (context: Context, commands = Yargs, quest
 
     // special case: for making provided value from arguments visible we should include it into choices
     if (obj.type === `autocomplete`) {
-      obj.choices = [...(obj?.choices as Choice[]), { value: context.flags[name], title: FROM_ARGS }]
+      obj.choices = [...(obj.choices as Choice[]), { value: context.flags[name], title: FROM_ARGS }]
     }
 
     return obj

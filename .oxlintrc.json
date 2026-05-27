@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "oxc", "unicorn", "import", "promise", "node", "vitest"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "vitest": true,
+    "es2021": true
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "build",
+    "docs",
+    "reports",
+    ".scripts",
+    ".secrets",
+    ".yarn",
+    ".cache",
+    ".pnp.*"
+  ]
+}

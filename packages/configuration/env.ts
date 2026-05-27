@@ -1,7 +1,7 @@
 import { config } from 'dotenv'
 import { expand } from 'dotenv-expand'
 import { existsSync } from 'node:fs'
-import { logD } from './logs'
+import { logD } from './logs.js'
 import findConfig from 'find-config'
 import path from 'node:path'
 

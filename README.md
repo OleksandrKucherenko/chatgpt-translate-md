@@ -26,18 +26,18 @@ version 3:
 ## Developer Environment
 
 - NVM v0.36 (https://github.com/nvm-sh/nvm#installation-and-update)
-  - Node LTS v18.15.0 (https://nodejs.org/en/download/)
+  - Node v24.16.0 (https://nodejs.org/en/download/)
 - DIRENV v2.23.0
 - YVM v4.0.1
-  - YARN v3.5.0
+  - YARN v4.15.0
 
 ```bash
 # execute script to verify the environment
 # (follow the script instructions)
 .scripts/00-validate-local-env.sh
 
-# use the latest YARN v3.x.x
-yarn set version berry
+# use the latest YARN v4.x.x
+yarn set version stable
 
 # https://yarnpkg.com/features/plugins#official-plugins
 yarn plugin import interactive-tools
@@ -100,7 +100,7 @@ https://github.com/vercel/pkg
 ## References
 
 - https://dev.to/mxro/the-ultimate-guide-to-typescript-monorepos-5ap7
-- https://github.com/TypeStrong/ts-node/issues/1709
+- https://github.com/privatenumber/tsx
 - https://blog.ah.technology/a-guide-through-the-wild-wild-west-of-setting-up-a-mono-repo-with-typescript-lerna-and-yarn-ed6a1e5467a
 - https://stackoverflow.com/questions/72380007/what-typescript-configuration-produces-output-closest-to-node-js-18-capabilities
 - https://bharathvaj.me/blog/how-to-publish-your-nodejs-project-on-homebrew

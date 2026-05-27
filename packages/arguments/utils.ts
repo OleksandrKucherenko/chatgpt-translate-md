@@ -24,7 +24,7 @@ const isDirectory = (file: string): boolean => {
   // security permission error is possible for some directories
   try {
     return fs.lstatSync(file).isDirectory()
-  } catch (error) {
+  } catch {
     return false
   }
 }

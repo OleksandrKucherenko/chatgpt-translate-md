@@ -6,10 +6,10 @@ import xxhash from 'xxhash-wasm'
 
 import { Dirs, Exits } from '@this/configuration'
 
-import { appendFile, createFile, isFileExists } from './utils'
-import { type ChunkError, type Content, type DocumentStrategy, type JobContext, Kpi, Http } from './types'
-import { Markdown } from './markdown'
-import { onFail, withUI } from './ui'
+import { appendFile, createFile, isFileExists } from './utils.js'
+import { type ChunkError, type Content, type DocumentStrategy, type JobContext, Kpi, Http } from './types.js'
+import { Markdown } from './markdown.js'
+import { onFail, withUI } from './ui.js'
 import { inspect } from 'node:util'
 
 /** How many chunks process at the same time. */

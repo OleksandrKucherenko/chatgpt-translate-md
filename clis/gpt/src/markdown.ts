@@ -3,7 +3,7 @@ import path from 'node:path'
 import { encode } from 'gpt-3-encoder'
 import { Dirs, dumpD } from '@this/configuration'
 import Handlebars from 'handlebars'
-import type { DocumentStrategy, Content, JobResults, JobContext } from './types'
+import type { DocumentStrategy, Content, JobResults, JobContext } from './types.js'
 
 export const MARKDOWN_SPLITTER = `\n\n`
 
